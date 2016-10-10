@@ -1,29 +1,49 @@
 package wbzr
 
 import (
-  "github.com/woobleio/wooblizer/wbzr/script"
+  "os"
+
+  "github.com/woobleio/wooblizer/wbzr/engine"
+)
+
+// Implemented engines
+const (
+  JS int = iota
 )
 
 type Wbzr struct {
-  script  script.Script
-  src     string
+  Engine  engine.Engine
 }
 
-func New(scriptLanguage string, src string) *Wbzr {
-  var wbzr Builder;
+func New(eng int, src string, name string) *Wbzr {
+  var wbzr Wbzr;
 
-  switch(scriptLanguage) {
-  case "js":
-    wbzr.script = &script.JS{}
+  switch(eng) {
+  case JS:
+    wbzr.Engine, _ = engine.NewJS(src, name)
+  default:
+    panic("Engine not supported")
   }
-
-  wbzr.src = src
 
   return &wbzr;
 }
 
-func (wb *Wbzr) BuildFile() (bool, error) {
-  wb.script.TranspileObject(wb.src)
+func (wb *Wbzr) BuildFile(path string, fileName string) error {
+  tmplSrc, err := wb.Engine.Build()
+  if err != nil {
+    return err
+  }
 
-  return true, nil
+  f, err := os.Create(path + "/" + fileName + wb.Engine.GetExt())
+  if err != nil {
+    return err
+  }
+
+  defer f.Close()
+
+  if err := tmplSrc.Execute(f, tmplSrc.Name()); err != nil {
+    return err
+  }
+
+  return nil
 }
