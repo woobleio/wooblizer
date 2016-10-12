@@ -1,4 +1,4 @@
-package wbzr
+package main
 
 import (
   "os"
