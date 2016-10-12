@@ -22,7 +22,31 @@ func NewJS(src string, objName string) (*JS, error) {
   return &JS{obj, objName}, nil
 }
 
-func (js *JS) AddMethod(name string, src string) {
+func (js *JS) AddAttr(name string, val interface{}) error {
+  if err := js.Obj.Set(name, val); err != nil {
+    return err
+  }
+  return nil
+}
+
+func (js *JS) AddMethod(name string, src string) error {
+  vm := otto.New()
+
+  // TODO this is a workaround to build a fn with Otto
+  tmpObj, err := vm.Object("({tmp:" + src + "})")
+  if err != nil {
+    return err
+  }
+  fn, err := tmpObj.Get("tmp")
+  if err != nil {
+    return err
+  }
+
+  if err := js.Obj.Set(name, fn); err != nil {
+    return err
+  }
+
+  return nil
 }
 
 func (js *JS) Build() (*template.Template, error) {
@@ -31,7 +55,7 @@ func (js *JS) Build() (*template.Template, error) {
   // obj = {...}
   buildBf.WriteString(js.ObjName)
   buildBf.WriteString("={")
-  if err := parseObject(js.Obj, &buildBf); err != nil {
+  if err := writeObject(js.Obj, &buildBf); err != nil {
     return nil, err
   }
 
@@ -41,6 +65,7 @@ func (js *JS) Build() (*template.Template, error) {
 }
 
 func (js *JS) CheckSource(src interface{}) error {
+  // TODO care for attacks
   _, _, err := otto.Run(src)
   return err
 }
@@ -49,7 +74,7 @@ func (js *JS) GetExt() string {
   return ".min.js"
 }
 
-func parseArray(arr otto.Value) (string, error) {
+func formatArray(arr otto.Value) (string, error) {
   val, errExp := arr.Export()
   if errExp != nil {
     return "", errExp
@@ -76,22 +101,40 @@ func parseArray(arr otto.Value) (string, error) {
   return ("[" + parsedArr + "]"), nil
 }
 
-func parseField(field otto.Value, bf *bytes.Buffer) error {
+
+func formatVar(pVar otto.Value) (string, error) {
+  parsedVar, errStr := pVar.ToString()
+  if errStr != nil {
+    return "", errStr
+  }
+
+  switch {
+  case pVar.IsString():
+    parsedVar = "\"" + parsedVar + "\""
+  case pVar.IsFunction(): // function
+    rpcer := strings.NewReplacer("\n", "", "\t", "", "\r", "")
+    parsedVar = rpcer.Replace(parsedVar)
+  }
+
+  return parsedVar, nil
+}
+
+func writeField(field otto.Value, bf *bytes.Buffer) error {
   var str string
   var err error
 
   switch {
   case field.IsObject() && !field.IsFunction() && field.Class() != "Array":
     bf.WriteRune('{')
-    if err := parseObject(field.Object(), bf); err != nil {
+    if err := writeObject(field.Object(), bf); err != nil {
       return err
     }
   case field.Class() == "Array":
-    if str, err = parseArray(field); err != nil {
+    if str, err = formatArray(field); err != nil {
       return err
     }
   default:
-    if str, err = parseVar(field); err != nil {
+    if str, err = formatVar(field); err != nil {
       return err
     }
   }
@@ -100,7 +143,7 @@ func parseField(field otto.Value, bf *bytes.Buffer) error {
   return nil
 }
 
-func parseObject(obj *otto.Object, bf *bytes.Buffer) error {
+func writeObject(obj *otto.Object, bf *bytes.Buffer) error {
   keys := obj.Keys()
 
   for i, fieldName := range keys {
@@ -112,7 +155,7 @@ func parseObject(obj *otto.Object, bf *bytes.Buffer) error {
     // foo: field
     bf.WriteString(fieldName)
     bf.WriteRune(':')
-    if err := parseField(val, bf); err != nil {
+    if err := writeField(val, bf); err != nil {
       return err
     }
     if i < len(keys) - 1 {
@@ -122,25 +165,4 @@ func parseObject(obj *otto.Object, bf *bytes.Buffer) error {
   bf.WriteRune('}')
 
   return nil
-}
-
-func parseVar(pVar otto.Value) (string, error) {
-  val, errExp := pVar.Export()
-  if errExp != nil {
-    return "", errExp
-  }
-  parsedVar, errStr := pVar.ToString()
-  if errStr != nil {
-    return "", errStr
-  }
-
-  switch val.(type) {
-  case string:
-    parsedVar = "\"" + parsedVar + "\""
-  case map[string]interface{}: // function
-    rpcer := strings.NewReplacer("\n", "", "\t", "", "\r", "")
-    parsedVar = rpcer.Replace(parsedVar)
-  }
-
-  return parsedVar, nil
 }

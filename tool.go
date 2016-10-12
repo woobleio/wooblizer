@@ -39,7 +39,16 @@ func main() {
   `
 
   wbzr := wbzr.New(wbzr.JS, src, "bonjour")
-  wbzr.BuildFile("/tmp", "aurevoir")
+  if err := wbzr.Engine.AddAttr("attrTestString", "lafjlajdf"); err != nil {
+    log.Print(err)
+  }
+  if err := wbzr.Engine.AddMethod("methodTest", `function(a){window.alert(a);}`); err != nil {
+    log.Print(err)
+  }
+  if err := wbzr.Engine.AddAttr("attrTest", 1052); err != nil {
+    log.Print(err)
+  }
+  wbzr.BuildFile("./", "aurevoir")
 
   log.Print("---- END ----")
 
