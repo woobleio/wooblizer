@@ -3,7 +3,7 @@ package main
 import (
   "os"
 
-  "github.com/woobleio/wooblizer/wbzr/engine"
+  "github.com/woobleio/wooblizer/engine"
 )
 
 // Implemented engines
@@ -12,29 +12,29 @@ const (
 )
 
 type Wbzr struct {
-  Engine  engine.Engine
+  Script  engine.Script
 }
 
-func New(eng int, src string, name string) *Wbzr {
+func New(langTarget int, src string, name string) *Wbzr {
   var wbzr Wbzr;
 
-  switch(eng) {
+  switch(langTarget) {
   case JS:
-    wbzr.Engine, _ = engine.NewJS(src, name)
+    wbzr.Script, _ = engine.NewJSES5(src, name)
   default:
-    panic("Engine not supported")
+    panic("Script not supported")
   }
 
   return &wbzr;
 }
 
 func (wb *Wbzr) BuildFile(path string, fileName string) error {
-  tmplSrc, err := wb.Engine.Build()
+  tmplSrc, err := wb.Script.Build()
   if err != nil {
     return err
   }
 
-  f, err := os.Create(path + "/" + fileName + wb.Engine.GetExt())
+  f, err := os.Create(path + "/" + fileName + wb.Script.GetExt())
   if err != nil {
     return err
   }
