@@ -57,9 +57,14 @@ func TestBuild(t *testing.T) {
   current.Reset()
   expected.Reset()
 
-  expectedStr = `objForTest={testObj:{field:"yu",fieldObj:{childNum:2.5,childStr:"15 - 15"}},testArrNum:[1,2,3,4],addStr:"hello",addNum:10.2,addArrStr:{0:"str1",1:"str2"},addFn:function(a, b){ console.log('new fn'); this.doc.querySelector('#elid'); this.doc.querySelectorAll('div'); this.doc.querySelectorAll('.elclass'); },buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var a = _d.createElement('div');a.setAttribute('class', 'classel');_sr.appendChild(a);var b = _d.createElement('p');b.setAttribute('id', 'paragraph');a.appendChild(b);var c = _d.createTextNode("this is a text");b.appendChild(c);var d = _d.createElement('div');d.setAttribute('data', 'a data');a.appendChild(d);var e = _d.createElement('span');e.setAttribute('class', 'first-class second-class');e.setAttribute('id', 'spanid');_sr.appendChild(e);this.doc = _sr}}`
+  expectedStr = `objForTest={testObj:{field:"yu",fieldObj:{childNum:2.5,childStr:"15 - 15"}},testArrNum:[1,2,3,4],addStr:"hello",addNum:10.2,addArrStr:{0:"str1",1:"str2"},addFn:function(a, b){ console.log('new fn'); this.doc.querySelector('#elid'); this.doc.querySelectorAll('div'); this.doc.querySelectorAll('.elclass'); },buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("div");b.setAttribute("class", "classel");_sr.appendChild(b);var c = _d.createElement("p");c.setAttribute("id", "paragraph");b.appendChild(c);var d = _d.createTextNode("this is a text");c.appendChild(d);var e = _d.createElement("div");e.setAttribute("data", "a data");d.appendChild(e);var f = _d.createElement("span");f.setAttribute("class", "first-class second-class");f.setAttribute("id", "spanid");e.appendChild(f);this.doc = _sr;}}`
 
-  js.IncludeHtml(`<div class="classel"><p id="paragraph">this is a text</p><div data="a data"></div></div><span class="first-class second-class" id="spanid"></span>`)
+  docHtml, err := engine.NewHTML("<div class='classel'><p id='paragraph'>this is a text</p><div data='a data'></div></div><span class='first-class second-class' id='spanid'></span>")
+  if err != nil {
+    t.Errorf("NewHTML failed, error : %s", err)
+  }
+  docHtml.AddExcludedNodes("body", "html", "head")
+  js.IncludeHtml(docHtml)
   tmpl, err = js.Build()
   if err != nil {
     t.Errorf("Build failed, error : %s", err)

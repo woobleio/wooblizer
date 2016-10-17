@@ -6,26 +6,43 @@ import (
   "github.com/woobleio/wooblizer/engine"
 )
 
-// Implemented engines
+type DocLang int
 const (
-  JS int = iota
+  HTML DocLang = iotad
+)
+
+type ScriptLang int
+const (
+  JSES5 ScriptLang = iota
 )
 
 type Wbzr struct {
+  Doc     engine.Doc
   Script  engine.Script
 }
 
-func New(langTarget int, src string, name string) *Wbzr {
+func New(sl ScriptLang, scriptSrc string, dl DocLang, docSrc string, name string) (*Wbzr, error) {
   var wbzr Wbzr;
 
-  switch(langTarget) {
-  case JS:
-    wbzr.Script, _ = engine.NewJSES5(src, name)
+  switch sl {
+  case JSES5:
+    wbzr.Script, err = engine.NewJSES5(scriptSrc, name)
+    if err != nil {
+      return nil, err
+    }
   default:
     panic("Script not supported")
   }
 
-  return &wbzr;
+  switch dl {
+  case HTML:
+    wbzr.Doc, err = engine.NewHTML(docSrc)
+    if err != nil {
+      return nil, err
+    }
+  }
+
+  return &wbzr, nil;
 }
 
 func (wb *Wbzr) BuildFile(path string, fileName string) error {
