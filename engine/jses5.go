@@ -6,6 +6,7 @@ import (
   h "golang.org/x/net/html"
   "strings"
   "text/template"
+  "fmt"
 
   "github.com/robertkrimen/otto"
 )
@@ -42,6 +43,7 @@ func (js *jses5) AddMethod(name string, src string) error {
   // TODO this is a workaround to build a fn with Otto
   tmpObj, err := vm.Object("({tmp:" + src + "})")
   if err != nil {
+    fmt.Print(src, err)
     return err
   }
   fn, err := tmpObj.Get("tmp")
@@ -82,7 +84,7 @@ func (js *jses5) GetExt() string {
   return ".min.js"
 }
 
-func (js *jses5) IncludeHtml(doc *html) {
+func (js *jses5) IncludeHtml(doc *html) error {
   /*
    * buildDoc: function(target){
    *   var _sr = document.querySelector(target).attachShadow({mode:'open'});
@@ -100,26 +102,33 @@ func (js *jses5) IncludeHtml(doc *html) {
   jsw.affectAttr("this", "doc", sRootVar)
   jsw.closeFunction()
 
-  js.AddMethod("buildDoc", jsw.bf.String())
+  if err := js.AddMethod("buildDoc", jsw.bf.String()); err != nil {
+    return err
+  }
 
   js.hasHtml = true
+
+  return nil
 }
 
-func (js *jses5) IncludeCss(css string) {
+func (js *jses5) IncludeCss(css string) error {
   jsw := newJsWriter("a", "document")
 
   jsw.makeFunction()
   jsw.affectVar("a", "")
-  jsw.createElement("style")
-  jsw.affectAttr("a", "innerHTML", css)
+  jsw.createElement("", "style")
+  jsw.affectAttr("a", "innerHTML", "\"" + sanitize(css) + "\"")
 
   if js.hasHtml {
     jsw.doc = "this.doc"
   }
   jsw.appendChild(jsw.doc, "a")
   jsw.closeFunction()
-}
 
+  err := js.AddMethod("buildStyle", jsw.bf.String())
+
+  return err
+}
 
 func buildField(field otto.Value, jsw *jsWriter) error {
   var str string
@@ -127,7 +136,6 @@ func buildField(field otto.Value, jsw *jsWriter) error {
 
   switch {
   case field.IsObject() && !field.IsFunction() && field.Class() != "Array":
-    //bf.WriteRune('{')
     jsw.makeObj()
     if err := buildInnerObject(field.Object(), jsw); err != nil {
       return err
@@ -206,16 +214,21 @@ func formatVar(pVar otto.Value) (string, error) {
   case pVar.IsString():
     formatVar = "\"" + formatVar + "\""
   case pVar.IsFunction():
-    rpcer := strings.NewReplacer("\n", "", "\t", "", "\r", "")
-    formatVar = rpcer.Replace(formatVar)
+    formatVar = sanitize(formatVar)
   }
 
   return formatVar, nil
 }
 
+func sanitize(src string) string {
+  rpcer := strings.NewReplacer("\n", "", "\t", "", "\r", "")
+  return rpcer.Replace(src)
+}
+
 func replaceDocQueries(src string) string {
   rpcer := strings.NewReplacer("document.querySelector", "this.doc.querySelector",
-    "document.querySelectorAll", "this.doc.querySelectorAll")
+    "document.querySelectorAll", "this.doc.querySelectorAll",
+    "document.appendChild", "this.doc.appendChild")
   return rpcer.Replace(src)
 }
 
@@ -289,23 +302,17 @@ func (jsw *jsWriter) appendChild(to string, toAppend string) {
   jsw.endExpr()
 }
 
-func (jsw *jsWriter) buildNode(html *html, index int) {
-  switch html.curNode.Type {
+func (jsw *jsWriter) buildNode(node *h.Node, index int) {
+  jsw.genUniqueVar()
+  jsw.affectVar("", "")
+  switch node.Type {
   case h.ElementNode:
-    if !html.isExcludedNode(html.curNode.Data) {
-      jsw.genUniqueVar()
-      jsw.affectVar("", "")
-      jsw.createElement(html.curNode.Data)
-      jsw.setAttributes(html.curNode.Attr)
-      jsw.appendChild(jsw.vars[len(jsw.vars) - index - 1], "")
-    }
+    jsw.createElement("_d", node.Data)
   case h.TextNode:
-    jsw.genUniqueVar()
-    jsw.affectVar("", "")
-    jsw.createTextNode(html.curNode.Data)
-    jsw.setAttributes(html.curNode.Attr)
-    jsw.appendChild(jsw.vars[len(jsw.vars) - index - 1], "")
+    jsw.createTextNode("_d", node.Data)
   }
+  jsw.setAttributes(node.Attr)
+  jsw.appendChild(jsw.vars[len(jsw.vars) - index - 1], "")
 }
 
 func (jsw *jsWriter) closeFunction() {
@@ -316,16 +323,22 @@ func (jsw *jsWriter) closeObj() {
   jsw.bf.WriteRune('}')
 }
 
-func (jsw *jsWriter) createElement(el string) {
-  jsw.bf.WriteString(jsw.doc)
+func (jsw *jsWriter) createElement(docVar string, el string) {
+  if len(docVar) == 0 {
+    docVar = "document"
+  }
+  jsw.bf.WriteString(docVar)
   jsw.bf.WriteString(".createElement(\"")
   jsw.bf.WriteString(el)
   jsw.bf.WriteString("\")")
   jsw.endExpr()
 }
 
-func (jsw *jsWriter) createTextNode(text string) {
-  jsw.bf.WriteString(jsw.doc)
+func (jsw *jsWriter) createTextNode(docVar string, text string) {
+  if len(docVar) == 0 {
+    docVar = "document"
+  }
+  jsw.bf.WriteString(docVar)
   jsw.bf.WriteString(".createTextNode(\"")
   jsw.bf.WriteString(text)
   jsw.bf.WriteString("\")")

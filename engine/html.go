@@ -8,7 +8,7 @@ import (
 type html struct {
   depthInd  int
   doc       *h.Node
-  exclNodes []string
+  exclNodes []interface{}
   curNode   *h.Node
 }
 
@@ -22,28 +22,41 @@ func NewHTML(doc string) (*html, error) {
   return &html{
     0,
     node,
-    make([]string, 0),
+    make([]interface{}, 0),
     node,
   }, nil
 }
 
-func (html *html) AddExcludedNodes(nodes ...string) {
+func (html *html) AddExcludedNodes(nodes ...interface{}) {
   for _, n := range nodes {
     html.exclNodes = append(html.exclNodes, n)
   }
 }
 
-func (html *html) isExcludedNode(node string) bool {
+func (html *html) isExcludedNode(node *h.Node) bool {
   for _, n := range html.exclNodes {
-    if n == node {
+    switch n.(type) {
+    case string:
+      if node.Data == n {
+        return true
+      }
+    case h.NodeType:
+      if node.Type == n {
+        return true
+      }
+    }
+    if node.Data == n || node.Type == n {
       return true
     }
   }
   return false
 }
 
-func (html *html) readAndExecute(fn func(*html, int)) {
-  fn(html, html.depthInd)
+func (html *html) readAndExecute(fn func(*h.Node, int)) {
+  n := html.curNode
+  if !html.isExcludedNode(n) {
+    fn(n, html.depthInd)
+  }
   for c := html.curNode.FirstChild; c != nil; c = c.NextSibling {
     html.curNode = c
     html.readAndExecute(fn)

@@ -10,7 +10,7 @@ type Script interface {
   Build() (src *template.Template, err error)
   GetExt() string
   IncludeHtml(html *html) error
-  IncludeCss(css string)
+  IncludeCss(css string) error
 }
 
 type Doc interface {
