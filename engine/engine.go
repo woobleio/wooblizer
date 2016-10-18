@@ -4,10 +4,15 @@ import (
   "text/template"
 )
 
-type Engine interface {
+type Script interface {
   AddAttr(name string, val interface{}) error
   AddMethod(name string, src string) error
   Build() (src *template.Template, err error)
-  CheckSource(src interface{}) error
   GetExt() string
+  IncludeHtml(html *html) error
+  IncludeCss(css string) error
+}
+
+type Doc interface {
+  AddExcludedNodes(nodes ...string)
 }
