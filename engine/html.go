@@ -6,8 +6,9 @@ import (
 )
 
 type html struct {
-  exclNodes []string
+  depthInd  int
   doc       *h.Node
+  exclNodes []string
   curNode   *h.Node
 }
 
@@ -19,8 +20,9 @@ func NewHTML(doc string) (*html, error) {
   }
 
   return &html{
-    make([]string, 0),
+    0,
     node,
+    make([]string, 0),
     node,
   }, nil
 }
@@ -40,10 +42,11 @@ func (html *html) isExcludedNode(node string) bool {
   return false
 }
 
-func (html *html) readAndExecute(fn func(*html)) {
-  fn(html)
+func (html *html) readAndExecute(fn func(*html, int)) {
+  fn(html, html.depthInd)
   for c := html.curNode.FirstChild; c != nil; c = c.NextSibling {
     html.curNode = c
     html.readAndExecute(fn)
   }
+  html.depthInd = html.depthInd + 1
 }

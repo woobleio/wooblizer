@@ -60,16 +60,14 @@ func (js *jses5) AddMethod(name string, src string) error {
 }
 
 func (js *jses5) Build() (*template.Template, error) {
-  var buildBf bytes.Buffer
+  jsw := newJsWriter(js.objName, "document")
 
-  // obj = {...}
-  buildBf.WriteString(js.objName)
-  buildBf.WriteString("={")
-  if err := writeInnerObject(js.obj, &buildBf); err != nil {
+  jsw.affectObj("", "")
+  if err := buildInnerObject(js.obj, jsw); err != nil {
     return nil, err
   }
 
-  objToStr := buildBf.String()
+  objToStr := jsw.bf.String()
 
   if js.hasHtml {
     objToStr = replaceDocQueries(objToStr)
@@ -122,64 +120,16 @@ func (js *jses5) IncludeCss(css string) {
   jsw.closeFunction()
 }
 
-func formatArray(arr otto.Value) (string, error) {
-  val, errExp := arr.Export()
-  if errExp != nil {
-    return "", errExp
-  }
-  parsedArr, errStr := arr.ToString()
-  if errStr != nil {
-    return "", errExp
-  }
-  switch val.(type) {
-  case []string:
-    var arrBf bytes.Buffer
-    split := strings.Split(parsedArr, ",")
-    for i, val := range split {
-      // ["foo","bar"]
-      arrBf.WriteRune('"')
-      arrBf.WriteString(val)
-      arrBf.WriteRune('"')
-      if i < len(split) - 1 {
-        arrBf.WriteRune(',')
-      }
-    }
-    parsedArr = arrBf.String()
-  }
-  return ("[" + parsedArr + "]"), nil
-}
 
-func formatVar(pVar otto.Value) (string, error) {
-  parsedVar, errStr := pVar.ToString()
-  if errStr != nil {
-    return "", errStr
-  }
-
-  switch {
-  case pVar.IsString():
-    parsedVar = "\"" + parsedVar + "\""
-  case pVar.IsFunction():
-    rpcer := strings.NewReplacer("\n", "", "\t", "", "\r", "")
-    parsedVar = rpcer.Replace(parsedVar)
-  }
-
-  return parsedVar, nil
-}
-
-func replaceDocQueries(src string) string {
-  rpcer := strings.NewReplacer("document.querySelector", "this.doc.querySelector",
-    "document.querySelectorAll", "this.doc.querySelectorAll")
-  return rpcer.Replace(src)
-}
-
-func writeField(field otto.Value, bf *bytes.Buffer) error {
+func buildField(field otto.Value, jsw *jsWriter) error {
   var str string
   var err error
 
   switch {
   case field.IsObject() && !field.IsFunction() && field.Class() != "Array":
-    bf.WriteRune('{')
-    if err := writeInnerObject(field.Object(), bf); err != nil {
+    //bf.WriteRune('{')
+    jsw.makeObj()
+    if err := buildInnerObject(field.Object(), jsw); err != nil {
       return err
     }
   case field.Class() == "Array":
@@ -191,12 +141,12 @@ func writeField(field otto.Value, bf *bytes.Buffer) error {
       return err
     }
   }
-  bf.WriteString(str)
+  jsw.bf.WriteString(str)
 
   return nil
 }
 
-func writeInnerObject(obj *otto.Object, bf *bytes.Buffer) error {
+func buildInnerObject(obj *otto.Object, jsw *jsWriter) error {
   keys := obj.Keys()
 
   for i, fieldName := range keys {
@@ -206,18 +156,67 @@ func writeInnerObject(obj *otto.Object, bf *bytes.Buffer) error {
     }
 
     // foo: field
-    bf.WriteString(fieldName)
-    bf.WriteRune(':')
-    if err := writeField(val, bf); err != nil {
+    jsw.affectField(fieldName, "")
+    if err := buildField(val, jsw); err != nil {
       return err
     }
     if i < len(keys) - 1 {
-      bf.WriteRune(',')
+      jsw.endField()
     }
   }
-  bf.WriteRune('}')
+  jsw.closeObj()
 
   return nil
+}
+
+func formatArray(arr otto.Value) (string, error) {
+  val, errExp := arr.Export()
+  if errExp != nil {
+    return "", errExp
+  }
+  formatArr, errStr := arr.ToString()
+  if errStr != nil {
+    return "", errExp
+  }
+  switch val.(type) {
+  case []string:
+    var arrBf bytes.Buffer
+    split := strings.Split(formatArr, ",")
+    for i, val := range split {
+      // ["foo","bar"]
+      arrBf.WriteRune('"')
+      arrBf.WriteString(val)
+      arrBf.WriteRune('"')
+      if i < len(split) - 1 {
+        arrBf.WriteRune(',')
+      }
+    }
+    formatArr = arrBf.String()
+  }
+  return ("[" + formatArr + "]"), nil
+}
+
+func formatVar(pVar otto.Value) (string, error) {
+  formatVar, errStr := pVar.ToString()
+  if errStr != nil {
+    return "", errStr
+  }
+
+  switch {
+  case pVar.IsString():
+    formatVar = "\"" + formatVar + "\""
+  case pVar.IsFunction():
+    rpcer := strings.NewReplacer("\n", "", "\t", "", "\r", "")
+    formatVar = rpcer.Replace(formatVar)
+  }
+
+  return formatVar, nil
+}
+
+func replaceDocQueries(src string) string {
+  rpcer := strings.NewReplacer("document.querySelector", "this.doc.querySelector",
+    "document.querySelectorAll", "this.doc.querySelectorAll")
+  return rpcer.Replace(src)
 }
 
 type jsWriter struct {
@@ -244,7 +243,26 @@ func (jsw *jsWriter) affectAttr(context string, attrName string, expr string) {
   jsw.bf.WriteString(attrName)
   jsw.bf.WriteString(" = ")
   jsw.bf.WriteString(expr)
-  jsw.bf.WriteRune(';')
+  jsw.endExpr()
+}
+
+func (jsw *jsWriter) affectField(name string, expr string) {
+  jsw.bf.WriteString(name)
+  jsw.bf.WriteRune(':')
+  jsw.bf.WriteString(expr)
+}
+
+func (jsw *jsWriter) affectObj(varName string, obj string) {
+  if len(varName) == 0 {
+    varName = jsw.cVar
+  }
+  jsw.bf.WriteString(varName)
+  jsw.bf.WriteString("={")
+  if len(obj) > 0 {
+    jsw.bf.WriteString(obj)
+    jsw.bf.WriteRune('}')
+    jsw.endExpr()
+  }
 }
 
 func (jsw *jsWriter) affectVar(varName string, expr string) {
@@ -256,7 +274,7 @@ func (jsw *jsWriter) affectVar(varName string, expr string) {
   jsw.bf.WriteString(" = ")
   if len(expr) > 0 {
     jsw.bf.WriteString(expr)
-    jsw.bf.WriteRune(';')
+    jsw.endExpr()
   }
 }
 
@@ -267,28 +285,26 @@ func (jsw *jsWriter) appendChild(to string, toAppend string) {
   jsw.bf.WriteString(to)
   jsw.bf.WriteString(".appendChild(")
   jsw.bf.WriteString(toAppend)
-  jsw.bf.WriteString(");")
+  jsw.bf.WriteRune(')')
+  jsw.endExpr()
 }
 
-func (jsw *jsWriter) buildNode(html *html) {
-  var pVar string
+func (jsw *jsWriter) buildNode(html *html, index int) {
   switch html.curNode.Type {
   case h.ElementNode:
     if !html.isExcludedNode(html.curNode.Data) {
-      pVar = jsw.cVar
       jsw.genUniqueVar()
       jsw.affectVar("", "")
       jsw.createElement(html.curNode.Data)
       jsw.setAttributes(html.curNode.Attr)
-      jsw.appendChild(pVar, "")
+      jsw.appendChild(jsw.vars[len(jsw.vars) - index - 1], "")
     }
   case h.TextNode:
-    pVar = jsw.cVar
     jsw.genUniqueVar()
     jsw.affectVar("", "")
     jsw.createTextNode(html.curNode.Data)
     jsw.setAttributes(html.curNode.Attr)
-    jsw.appendChild(pVar, "")
+    jsw.appendChild(jsw.vars[len(jsw.vars) - index - 1], "")
   }
 }
 
@@ -296,18 +312,32 @@ func (jsw *jsWriter) closeFunction() {
   jsw.bf.WriteRune('}')
 }
 
+func (jsw *jsWriter) closeObj() {
+  jsw.bf.WriteRune('}')
+}
+
 func (jsw *jsWriter) createElement(el string) {
   jsw.bf.WriteString(jsw.doc)
   jsw.bf.WriteString(".createElement(\"")
   jsw.bf.WriteString(el)
-  jsw.bf.WriteString("\");")
+  jsw.bf.WriteString("\")")
+  jsw.endExpr()
 }
 
 func (jsw *jsWriter) createTextNode(text string) {
   jsw.bf.WriteString(jsw.doc)
   jsw.bf.WriteString(".createTextNode(\"")
   jsw.bf.WriteString(text)
-  jsw.bf.WriteString("\");")
+  jsw.bf.WriteString("\")")
+  jsw.endExpr()
+}
+
+func (jsw *jsWriter) endField() {
+  jsw.bf.WriteRune(',')
+}
+
+func (jsw *jsWriter) endExpr() {
+  jsw.bf.WriteRune(';')
 }
 
 func (jsw *jsWriter) genUniqueVar() {
@@ -338,7 +368,8 @@ func (jsw *jsWriter) setAttributes(attrs []h.Attribute) {
     jsw.bf.WriteString(attrKey)
     jsw.bf.WriteString("\", \"")
     jsw.bf.WriteString(attr.Val)
-    jsw.bf.WriteString("\");")
+    jsw.bf.WriteString("\")")
+    jsw.endExpr()
   }
 }
 
@@ -351,4 +382,8 @@ func (jsw *jsWriter) makeFunction(args ...string) {
     }
   }
   jsw.bf.WriteString("){")
+}
+
+func (jsw *jsWriter) makeObj() {
+  jsw.bf.WriteRune('{')
 }
