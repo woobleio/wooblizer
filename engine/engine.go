@@ -9,10 +9,6 @@ type Script interface {
   AddMethod(name string, src string) error
   Build() (src *template.Template, err error)
   GetExt() string
-  IncludeHtml(html *html) error
+  IncludeHtml(src string) error
   IncludeCss(css string) error
-}
-
-type Doc interface {
-  AddExcludedNodes(nodes ...string)
 }

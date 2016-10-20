@@ -1,4 +1,4 @@
-package engine
+package script
 
 import (
   "bytes"
@@ -9,6 +9,7 @@ import (
   "fmt"
 
   "github.com/robertkrimen/otto"
+  "github.com/woobleio/wooblizer/engine/doc"
 )
 
 type jses5 struct {
@@ -16,6 +17,8 @@ type jses5 struct {
   obj     *otto.Object
   objName string
 }
+
+const docVar string = "_doc"
 
 func NewJSES5(src string, objName string) (*jses5, error) {
   vm := otto.New()
@@ -84,12 +87,17 @@ func (js *jses5) GetExt() string {
   return ".min.js"
 }
 
-func (js *jses5) IncludeHtml(doc *html) error {
+func (js *jses5) IncludeHtml(src string) error {
+  doc, err := doc.NewHTML(src)
+  if err != nil {
+    return err
+  }
+  doc.AddExcludedNodes("body", "html", "head", h.DoctypeNode, h.ErrorNode, h.DocumentNode, h.CommentNode)
   /*
    * buildDoc: function(target){
    *   var _sr = document.querySelector(target).attachShadow({mode:'open'});
    *   // create nodes, add theirs attrs and append children to parents
-   *   this.doc = _sr; // To be query in place of the document
+   *   this._doc = _sr; // To be query in place of the document
    * }
    */
 
@@ -98,11 +106,11 @@ func (js *jses5) IncludeHtml(doc *html) error {
   jsw.makeFunction("target")
   jsw.affectVar("_d", "document")
   jsw.affectVar(sRootVar, "_d.querySelector(target).attachShadow({mode:'open'})")
-  doc.readAndExecute(jsw.buildNode)
-  jsw.affectAttr("this", "doc", sRootVar)
-  jsw.closeFunction()
+  doc.ReadAndExecute(jsw.buildNode)
+  jsw.affectAttr("this", docVar, sRootVar)
+  jsw.closeExpr()
 
-  if err := js.AddMethod("buildDoc", jsw.bf.String()); err != nil {
+  if err := js.AddMethod("_buildDoc", jsw.bf.String()); err != nil {
     return err
   }
 
@@ -120,12 +128,12 @@ func (js *jses5) IncludeCss(css string) error {
   jsw.affectAttr("a", "innerHTML", "\"" + sanitize(css) + "\"")
 
   if js.hasHtml {
-    jsw.doc = "this.doc"
+    jsw.doc = "this." + docVar
   }
   jsw.appendChild(jsw.doc, "a")
-  jsw.closeFunction()
+  jsw.closeExpr()
 
-  err := js.AddMethod("buildStyle", jsw.bf.String())
+  err := js.AddMethod("_buildStyle", jsw.bf.String())
 
   return err
 }
@@ -172,7 +180,7 @@ func buildInnerObject(obj *otto.Object, jsw *jsWriter) error {
       jsw.endField()
     }
   }
-  jsw.closeObj()
+  jsw.closeExpr()
 
   return nil
 }
@@ -226,9 +234,9 @@ func sanitize(src string) string {
 }
 
 func replaceDocQueries(src string) string {
-  rpcer := strings.NewReplacer("document.querySelector", "this.doc.querySelector",
-    "document.querySelectorAll", "this.doc.querySelectorAll",
-    "document.appendChild", "this.doc.appendChild")
+  rpcer := strings.NewReplacer("document.querySelector", "this." + docVar + ".querySelector",
+    "document.querySelectorAll", "this." + docVar + ".querySelectorAll",
+    "document.appendChild", "this." + docVar + ".appendChild")
   return rpcer.Replace(src)
 }
 
@@ -315,11 +323,7 @@ func (jsw *jsWriter) buildNode(node *h.Node, index int) {
   jsw.appendChild(jsw.vars[len(jsw.vars) - index - 1], "")
 }
 
-func (jsw *jsWriter) closeFunction() {
-  jsw.bf.WriteRune('}')
-}
-
-func (jsw *jsWriter) closeObj() {
+func (jsw *jsWriter) closeExpr() {
   jsw.bf.WriteRune('}')
 }
 

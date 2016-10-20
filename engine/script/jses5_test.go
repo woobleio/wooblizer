@@ -1,12 +1,11 @@
-package engine
+package script
 
 import (
   "bytes"
-  h "golang.org/x/net/html"
   "testing"
   "text/template"
 
-  "github.com/woobleio/wooblizer/engine"
+  "github.com/woobleio/wooblizer/engine/script"
 )
 
 func TestBuild(t *testing.T) {
@@ -26,7 +25,7 @@ func TestBuild(t *testing.T) {
   })
   `
 
-  js, err := engine.NewJSES5(src, "objForTest")
+  js, err := script.NewJSES5(src, "objForTest")
   if err != nil {
     t.Errorf("Can't create a new jses5, error : %s", err)
   }
@@ -61,16 +60,11 @@ func TestBuild(t *testing.T) {
 
 func TestIncludeHtml(t *testing.T) {
   var current, expected bytes.Buffer
-  js, err := engine.NewJSES5("({})", "objForTest")
+  js, err := script.NewJSES5("({})", "objForTest")
 
-  expectedStr := `objForTest={buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("div");b.setAttribute("class", "classel");_sr.appendChild(b);var c = _d.createElement("p");c.setAttribute("id", "paragraph");b.appendChild(c);var d = _d.createTextNode("this is a text");c.appendChild(d);var e = _d.createElement("div");e.setAttribute("data", "a data");b.appendChild(e);var f = _d.createElement("span");f.setAttribute("class", "first-class second-class");f.setAttribute("id", "spanid");_sr.appendChild(f);this.doc = _sr;}}`
-  docHtml, err := engine.NewHTML("<div class='classel'><p id='paragraph'>this is a text</p><div data='a data'></div></div><span class='first-class second-class' id='spanid'></span>")
-  if err != nil {
-    t.Errorf("NewHTML failed, error : %s", err)
-  }
-  docHtml.AddExcludedNodes("body", "html", "head", h.DoctypeNode, h.ErrorNode, h.DocumentNode, h.CommentNode)
+  expectedStr := `objForTest={_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("div");b.setAttribute("class", "classel");_sr.appendChild(b);var c = _d.createElement("p");c.setAttribute("id", "paragraph");b.appendChild(c);var d = _d.createTextNode("this is a text");c.appendChild(d);var e = _d.createElement("div");e.setAttribute("data", "a data");b.appendChild(e);var f = _d.createElement("span");f.setAttribute("class", "first-class second-class");f.setAttribute("id", "spanid");_sr.appendChild(f);this._doc = _sr;}}`
 
-  if err := js.IncludeHtml(docHtml); err != nil {
+  if err := js.IncludeHtml("<div class='classel'><p id='paragraph'>this is a text</p><div data='a data'></div></div><span class='first-class second-class' id='spanid'></span>"); err != nil {
     t.Errorf("IncludeHtml failed, error : %s", err)
   }
 
@@ -90,7 +84,7 @@ func TestIncludeHtml(t *testing.T) {
 
 func TestIncludeCss(t *testing.T) {
   var current, expected bytes.Buffer
-  js, err := engine.NewJSES5("({})", "objForTest")
+  js, err := script.NewJSES5("({})", "objForTest")
 
   css :=
   `
@@ -102,7 +96,7 @@ func TestIncludeCss(t *testing.T) {
   }
   `
 
-  expectedStr := `objForTest={buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";document.appendChild(a);}}`
+  expectedStr := `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";document.appendChild(a);}}`
 
   if err := js.IncludeCss(css); err != nil {
     t.Errorf("IncludeCss failed, error : %s", err)
@@ -124,17 +118,11 @@ func TestIncludeCss(t *testing.T) {
   current.Reset()
   expected.Reset()
 
-  docHtml, err := engine.NewHTML(`<p id="id">hello world</p>`)
-  if err != nil {
-    t.Errorf("NewHTML failed, error : %s", err)
-  }
-  docHtml.AddExcludedNodes("body", "html", "head", h.DoctypeNode, h.ErrorNode, h.DocumentNode, h.CommentNode)
-
-  if err := js.IncludeHtml(docHtml); err != nil {
+  if err := js.IncludeHtml(`<p id="id">hello world</p>`); err != nil {
     t.Errorf("IncludeHtml failed, error : %s", err)
   }
 
-  expectedStr = `objForTest={buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";this.doc.appendChild(a);},buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("p");b.setAttribute("id", "id");_sr.appendChild(b);var c = _d.createTextNode("hello world");b.appendChild(c);this.doc = _sr;}}`
+  expectedStr = `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";this._doc.appendChild(a);},_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("p");b.setAttribute("id", "id");_sr.appendChild(b);var c = _d.createTextNode("hello world");b.appendChild(c);this._doc = _sr;}}`
 
   tmpl, err = js.Build()
   if err != nil {

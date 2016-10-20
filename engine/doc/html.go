@@ -1,4 +1,4 @@
-package engine
+package doc
 
 import (
   h "golang.org/x/net/html"
@@ -33,6 +33,19 @@ func (html *html) AddExcludedNodes(nodes ...interface{}) {
   }
 }
 
+func (html *html) ReadAndExecute(fn func(*h.Node, int)) {
+  n := html.curNode
+  if !html.isExcludedNode(n) {
+    fn(n, html.depthInd)
+  }
+  for c := html.curNode.FirstChild; c != nil; c = c.NextSibling {
+    html.curNode = c
+    html.ReadAndExecute(fn)
+  }
+  html.depthInd = html.depthInd + 1
+}
+
+
 func (html *html) isExcludedNode(node *h.Node) bool {
   for _, n := range html.exclNodes {
     switch n.(type) {
@@ -50,16 +63,4 @@ func (html *html) isExcludedNode(node *h.Node) bool {
     }
   }
   return false
-}
-
-func (html *html) readAndExecute(fn func(*h.Node, int)) {
-  n := html.curNode
-  if !html.isExcludedNode(n) {
-    fn(n, html.depthInd)
-  }
-  for c := html.curNode.FirstChild; c != nil; c = c.NextSibling {
-    html.curNode = c
-    html.readAndExecute(fn)
-  }
-  html.depthInd = html.depthInd + 1
 }

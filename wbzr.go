@@ -1,14 +1,10 @@
 package main
 
 import (
-  "os"
+  _ "os"
 
   "github.com/woobleio/wooblizer/engine"
-)
-
-type DocLang int
-const (
-  HTML DocLang = iotad
+  "github.com/woobleio/wooblizer/engine/script"
 )
 
 type ScriptLang int
@@ -16,51 +12,49 @@ const (
   JSES5 ScriptLang = iota
 )
 
-type Wbzr struct {
-  Doc     engine.Doc
-  Script  engine.Script
+type wbzr struct {
+  lang     ScriptLang
+  scripts  map[string]engine.Script
 }
 
-func New(sl ScriptLang, scriptSrc string, dl DocLang, docSrc string, name string) (*Wbzr, error) {
-  var wbzr Wbzr;
-
+func New(sl ScriptLang) *wbzr {
   switch sl {
   case JSES5:
-    wbzr.Script, err = engine.NewJSES5(scriptSrc, name)
-    if err != nil {
-      return nil, err
-    }
   default:
     panic("Script not supported")
   }
 
-  switch dl {
-  case HTML:
-    wbzr.Doc, err = engine.NewHTML(docSrc)
-    if err != nil {
-      return nil, err
-    }
-  }
-
-  return &wbzr, nil;
+  return &wbzr{sl, make(map[string]engine.Script)};
 }
 
-func (wb *Wbzr) BuildFile(path string, fileName string) error {
-  tmplSrc, err := wb.Script.Build()
+func (wb *wbzr) BuildFile(path string, fileName string) error {
+  /*tmplSrc, err := wb.script.Build()
   if err != nil {
     return err
   }
 
-  f, err := os.Create(path + "/" + fileName + wb.Script.GetExt())
+  f, err := os.Create(path + "/" + fileName + wb.script.GetExt())
   if err != nil {
     return err
   }
-
   defer f.Close()
 
   if err := tmplSrc.Execute(f, tmplSrc.Name()); err != nil {
     return err
-  }
+  }*/
 
   return nil
+}
+
+func (wb *wbzr) Inject(obj string, name string) (*engine.Script, error) {
+  var sc engine.Script
+  switch wb.lang {
+  case JSES5:
+    sc, err := script.NewJSES5(obj, name)
+    if err != nil {
+      return nil, err
+    }
+    wb.scripts[name] = sc
+  }
+  return &sc, nil
 }
