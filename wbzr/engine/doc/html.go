@@ -8,9 +8,10 @@ import (
 type html struct {
   depthInd  int
   doc       *h.Node
-  exclNodes []interface{}
   curNode   *h.Node
 }
+
+var exclNodes []interface{}
 
 func NewHTML(doc string) (*html, error) {
   r := strings.NewReader(doc)
@@ -19,23 +20,18 @@ func NewHTML(doc string) (*html, error) {
     return nil, err
   }
 
+  addExcludedNodes("body", "html", "head", h.DoctypeNode, h.ErrorNode, h.DocumentNode, h.CommentNode)
+
   return &html{
     0,
     node,
-    make([]interface{}, 0),
     node,
   }, nil
 }
 
-func (html *html) AddExcludedNodes(nodes ...interface{}) {
-  for _, n := range nodes {
-    html.exclNodes = append(html.exclNodes, n)
-  }
-}
-
 func (html *html) ReadAndExecute(fn func(*h.Node, int)) {
   n := html.curNode
-  if !html.isExcludedNode(n) {
+  if !isExcludedNode(n) {
     fn(n, html.depthInd)
   }
   for c := html.curNode.FirstChild; c != nil; c = c.NextSibling {
@@ -45,9 +41,14 @@ func (html *html) ReadAndExecute(fn func(*h.Node, int)) {
   html.depthInd = html.depthInd + 1
 }
 
+func addExcludedNodes(nodes ...interface{}) {
+  for _, n := range nodes {
+    exclNodes = append(exclNodes, n)
+  }
+}
 
-func (html *html) isExcludedNode(node *h.Node) bool {
-  for _, n := range html.exclNodes {
+func isExcludedNode(node *h.Node) bool {
+  for _, n := range exclNodes {
     switch n.(type) {
     case string:
       if node.Data == n {
@@ -57,9 +58,6 @@ func (html *html) isExcludedNode(node *h.Node) bool {
       if node.Type == n {
         return true
       }
-    }
-    if node.Data == n || node.Type == n {
-      return true
     }
   }
   return false

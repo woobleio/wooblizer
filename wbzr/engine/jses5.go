@@ -1,4 +1,4 @@
-package script
+package engine
 
 import (
   "bytes"
@@ -6,21 +6,21 @@ import (
   h "golang.org/x/net/html"
   "strings"
   "text/template"
-  "fmt"
 
   "github.com/robertkrimen/otto"
-  "github.com/woobleio/wooblizer/engine/doc"
+  "github.com/woobleio/wooblizer/wbzr/engine/doc"
 )
 
 type jses5 struct {
   hasHtml bool
+  name    string
   obj     *otto.Object
-  objName string
+  src     string
 }
 
 const docVar string = "_doc"
 
-func NewJSES5(src string, objName string) (*jses5, error) {
+func NewJSES5(src string, name string) (*jses5, error) {
   vm := otto.New()
   obj, err := vm.Object(src)
   if err != nil {
@@ -28,8 +28,9 @@ func NewJSES5(src string, objName string) (*jses5, error) {
   }
   return &jses5{
     false,
+    name,
     obj,
-    objName,
+    src,
   }, nil
 }
 
@@ -46,7 +47,6 @@ func (js *jses5) AddMethod(name string, src string) error {
   // TODO this is a workaround to build a fn with Otto
   tmpObj, err := vm.Object("({tmp:" + src + "})")
   if err != nil {
-    fmt.Print(src, err)
     return err
   }
   fn, err := tmpObj.Get("tmp")
@@ -65,34 +65,36 @@ func (js *jses5) AddMethod(name string, src string) error {
 }
 
 func (js *jses5) Build() (*template.Template, error) {
-  jsw := newJsWriter(js.objName, "document")
+  jsw := newJsWriter(js.name, "document")
 
-  jsw.affectObj("", "")
+  //jsw.affectObj("", "")
   if err := buildInnerObject(js.obj, jsw); err != nil {
     return nil, err
   }
 
-  objToStr := jsw.bf.String()
+  toStr := jsw.bf.String()
 
   if js.hasHtml {
-    objToStr = replaceDocQueries(objToStr)
+    toStr = replaceDocQueries(toStr)
   }
 
-  tmpl := template.Must(template.New("jsObject").Parse(objToStr))
+  js.src = toStr
+
+  // tmpl := template.Must(template.New("jsObject").Parse(objToStr))
+  tmpl := template.Must(template.New("jsObject").Parse(templateStr))
 
   return tmpl, nil
 }
 
-func (js *jses5) GetExt() string {
-  return ".min.js"
-}
+func (js *jses5) GetName() string { return js.name }
+
+func (js *jses5) GetSource() string { return js.src }
 
 func (js *jses5) IncludeHtml(src string) error {
   doc, err := doc.NewHTML(src)
   if err != nil {
     return err
   }
-  doc.AddExcludedNodes("body", "html", "head", h.DoctypeNode, h.ErrorNode, h.DocumentNode, h.CommentNode)
   /*
    * buildDoc: function(target){
    *   var _sr = document.querySelector(target).attachShadow({mode:'open'});
@@ -148,6 +150,7 @@ func buildField(field otto.Value, jsw *jsWriter) error {
     if err := buildInnerObject(field.Object(), jsw); err != nil {
       return err
     }
+    jsw.closeExpr()
   case field.Class() == "Array":
     if str, err = formatArray(field); err != nil {
       return err
@@ -180,7 +183,6 @@ func buildInnerObject(obj *otto.Object, jsw *jsWriter) error {
       jsw.endField()
     }
   }
-  jsw.closeExpr()
 
   return nil
 }
@@ -404,3 +406,5 @@ func (jsw *jsWriter) makeFunction(args ...string) {
 func (jsw *jsWriter) makeObj() {
   jsw.bf.WriteRune('{')
 }
+
+const templateStr = `{{.Name}}={{"{"}}{{.Src}}{{"}"}}`
