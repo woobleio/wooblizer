@@ -1,3 +1,5 @@
+// Package wbzr provides tool to create a wooble in a given language and to package
+// (wrap) some woobles.
 package wbzr
 
 import (
@@ -9,6 +11,7 @@ import (
   "github.com/woobleio/wooblizer/wbzr/engine"
 )
 
+// ScriptLang are constants for implemented script languages.
 type ScriptLang int
 const (
   JSES5 ScriptLang = iota
@@ -21,6 +24,7 @@ type wbzr struct {
   skeleton  string
 }
 
+// New takes a script language which is used to inject and output a file.
 func New(sl ScriptLang) *wbzr {
   var skeleton, ext string
   switch sl {
@@ -39,6 +43,8 @@ func New(sl ScriptLang) *wbzr {
   }
 }
 
+// BuildScriptFile make a wooble. The parameter wbName is the name of the injected source
+// you want to build
 func (wb *wbzr) BuildScriptFile(wbName string, path string, fileName string) error {
   script, err := wb.Get(wbName)
   if err != nil {
@@ -63,6 +69,7 @@ func (wb *wbzr) BuildScriptFile(wbName string, path string, fileName string) err
   return nil
 }
 
+// Get returns an injected source.
 func (wb *wbzr) Get(name string) (engine.Script, error) {
   for _, sc := range wb.scripts {
     if sc.GetName() == name {
@@ -72,7 +79,12 @@ func (wb *wbzr) Get(name string) (engine.Script, error) {
   return nil, errors.New("Wooble " + name + " not found")
 }
 
+// Inject injects a source code to be wooblized. It takes a name which must be
+// unique.
 func (wb *wbzr) Inject(src string, name string) (*engine.Script, error) {
+  if _, err := wb.Get(name); err != nil {
+    return nil, errors.New("Wooble " + name + " already exists. A name must be unique")
+  }
   var sc engine.Script
   switch wb.lang {
   case JSES5:
@@ -85,6 +97,7 @@ func (wb *wbzr) Inject(src string, name string) (*engine.Script, error) {
   return &sc, nil
 }
 
+// InjectFile injects a source from a file.
 func (wb *wbzr) InjectFile(path string, name string) (*engine.Script, error) {
   c, err := ioutil.ReadFile(path)
   if err != nil {
@@ -94,6 +107,8 @@ func (wb *wbzr) InjectFile(path string, name string) (*engine.Script, error) {
   return wb.Inject(string(c[:]), name)
 }
 
+// WrapAndBuildFile packages some woobles (all the woobles injected in the wbzr)
+// and build a file which contains the wooble library.
 func (wb *wbzr) WrapAndBuildFile(path string, fileName string) error {
   for _, sc := range wb.scripts {
     if _, err := sc.Build(); err != nil {
