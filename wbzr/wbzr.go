@@ -2,6 +2,7 @@ package wbzr
 
 import (
   "errors"
+  "io/ioutil"
   "os"
   "text/template"
 
@@ -82,6 +83,15 @@ func (wb *wbzr) Inject(src string, name string) (*engine.Script, error) {
     wb.scripts = append(wb.scripts, sc)
   }
   return &sc, nil
+}
+
+func (wb *wbzr) InjectFile(path string, name string) (*engine.Script, error) {
+  c, err := ioutil.ReadFile(path)
+  if err != nil {
+    return nil, err
+  }
+
+  return wb.Inject(string(c[:]), name)
 }
 
 func (wb *wbzr) WrapAndBuildFile(path string, fileName string) error {

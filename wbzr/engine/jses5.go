@@ -4,6 +4,7 @@ import (
   "bytes"
   "errors"
   h "golang.org/x/net/html"
+  "regexp"
   "strings"
   "text/template"
 
@@ -35,6 +36,9 @@ func NewJSES5(src string, name string) (*jses5, error) {
 }
 
 func (js *jses5) AddAttr(name string, val interface{}) error {
+  if !isAcceptedFieldName(name) {
+    return errors.New("The attribute name should be an alphanumerical word")
+  }
   if err := js.obj.Set(name, val); err != nil {
     return err
   }
@@ -42,6 +46,10 @@ func (js *jses5) AddAttr(name string, val interface{}) error {
 }
 
 func (js *jses5) AddMethod(name string, src string) error {
+  if !isAcceptedFieldName(name) {
+    return errors.New("This methode name should be an alphanumerical word")
+  }
+
   vm := otto.New()
 
   // TODO this is a workaround to build a fn with Otto
@@ -138,6 +146,11 @@ func (js *jses5) IncludeCss(css string) error {
   err := js.AddMethod("_buildStyle", jsw.bf.String())
 
   return err
+}
+
+func isAcceptedFieldName(str string) bool {
+  res, _ := regexp.MatchString("\\w", str)
+  return res
 }
 
 func buildField(field otto.Value, jsw *jsWriter) error {
@@ -407,4 +420,4 @@ func (jsw *jsWriter) makeObj() {
   jsw.bf.WriteRune('{')
 }
 
-const templateStr = `{{.Name}}={{"{"}}{{.Src}}{{"}"}}`
+const templateStr = `{{.GetName}}={{"{"}}{{.GetSource}}{{"}"}}`
