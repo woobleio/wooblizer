@@ -82,7 +82,7 @@ func (wb *wbzr) Get(name string) (engine.Script, error) {
 // Inject injects a source code to be wooblized. It takes a name which must be
 // unique.
 func (wb *wbzr) Inject(src string, name string) (*engine.Script, error) {
-  if _, err := wb.Get(name); err != nil {
+  if _, err := wb.Get(name); err == nil {
     return nil, errors.New("Wooble " + name + " already exists. A name must be unique")
   }
   var sc engine.Script
