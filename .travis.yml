@@ -6,3 +6,8 @@ go:
 install:
   - go get github.com/robertkrimen/otto 
   - go get golang.org/x/net/html
+  
+branches:
+  only:
+    - master
+    - dev
