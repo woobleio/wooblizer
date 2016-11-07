@@ -94,7 +94,7 @@ func (wb *wbzr) Inject(src string, name string) (engine.Script, error) {
     }
     wb.scripts = append(wb.scripts, sc)
   }
-  return &sc, nil
+  return sc, nil
 }
 
 // InjectFile injects a source from a file.
