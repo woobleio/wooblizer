@@ -81,7 +81,7 @@ func (wb *wbzr) Get(name string) (engine.Script, error) {
 
 // Inject injects a source code to be wooblized. It takes a name which must be
 // unique.
-func (wb *wbzr) Inject(src string, name string) (*engine.Script, error) {
+func (wb *wbzr) Inject(src string, name string) (engine.Script, error) {
   if _, err := wb.Get(name); err == nil {
     return nil, errors.New("Wooble " + name + " already exists. A name must be unique")
   }
@@ -94,11 +94,11 @@ func (wb *wbzr) Inject(src string, name string) (*engine.Script, error) {
     }
     wb.scripts = append(wb.scripts, sc)
   }
-  return &sc, nil
+  return sc, nil
 }
 
 // InjectFile injects a source from a file.
-func (wb *wbzr) InjectFile(path string, name string) (*engine.Script, error) {
+func (wb *wbzr) InjectFile(path string, name string) (engine.Script, error) {
   c, err := ioutil.ReadFile(path)
   if err != nil {
     return nil, err
