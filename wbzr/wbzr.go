@@ -3,8 +3,8 @@
 package wbzr
 
 import (
+	"bytes"
 	"errors"
-	"io"
 	"io/ioutil"
 	"os"
 	"text/template"
@@ -111,7 +111,7 @@ func (wb *wbzr) InjectFile(path string, name string) (engine.Script, error) {
 
 // Wrap packages some woobles (all the woobles injected in the wbzr)
 // and build a file which contains the wooble library.
-func (wb *wbzr) Wrap() (*io.Writer, error) {
+func (wb *wbzr) Wrap() (*bytes.Buffer, error) {
 	for _, sc := range wb.scripts {
 		if _, err := sc.Build(); err != nil {
 			return nil, err
@@ -120,12 +120,12 @@ func (wb *wbzr) Wrap() (*io.Writer, error) {
 
 	tmpl := template.Must(template.New("WbJSES5").Parse(wbJses5))
 
-	var writer io.Writer
-	if err := tmpl.Execute(writer, wb.scripts); err != nil {
+	var out bytes.Buffer
+	if err := tmpl.Execute(&out, wb.scripts); err != nil {
 		return nil, err
 	}
 
-	return &writer, nil
+	return &out, nil
 }
 
 var wbJses5 = `
