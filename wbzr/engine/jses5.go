@@ -102,7 +102,6 @@ func (js *jses5) GetSource() string { return js.src }
 
 func (js *jses5) IncludeHtml(src string) error {
 	// Fixes net/html new line reading as text node... It breaks the generated script
-
 	doc, err := doc.NewHTML(sanitize(src))
 	if err != nil {
 		return err
@@ -339,7 +338,13 @@ func (jsw *jsWriter) buildNode(node *h.Node, index int) {
 		jsw.createTextNode("_d", node.Data)
 	}
 	jsw.setAttributes(node.Attr)
-	jsw.appendChild(jsw.vars[len(jsw.vars)-index-1], "")
+
+	varIndex := len(jsw.vars) - index - 1
+	if varIndex < 0 {
+		// To node root when below 0
+		varIndex = 0
+	}
+	jsw.appendChild(jsw.vars[varIndex], "")
 }
 
 func (jsw *jsWriter) closeExpr() {
