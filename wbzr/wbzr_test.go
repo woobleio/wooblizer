@@ -33,7 +33,12 @@ func TestWrap(t *testing.T) {
 		t.Error("Failed to inject the second script, error %s", err)
 	}
 
-	script1.IncludeHtml("<div></div>")
+	src := `<div id="toto">
+	</div>`
+	err = script1.IncludeHtml(src)
+	if err != nil {
+		t.Error("Failed to include HTML in script1, error : %s", err)
+	}
 
 	script2.IncludeHtml("<span></span>")
 	script2.IncludeCss("#div { color: red }")
