@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"errors"
 	"io/ioutil"
-	"os"
 	"text/template"
 
 	"github.com/woobleio/wooblizer/wbzr/engine"
@@ -20,7 +19,6 @@ const (
 )
 
 type wbzr struct {
-	ext      string
 	lang     ScriptLang
 	scripts  []engine.Script
 	skeleton string
@@ -28,47 +26,19 @@ type wbzr struct {
 
 // New takes a script language which is used to inject and output a file.
 func New(sl ScriptLang) *wbzr {
-	var skeleton, ext string
+	var skeleton string
 	switch sl {
 	case JSES5:
 		skeleton = wbJses5
-		ext = ".min.js"
 	default:
 		panic("Language not supported")
 	}
 
 	return &wbzr{
-		ext,
 		sl,
 		make([]engine.Script, 0),
 		skeleton,
 	}
-}
-
-// BuildScriptFile make a wooble. The parameter wbName is the name of the injected source
-// you want to build
-func (wb *wbzr) BuildScriptFile(wbName string, path string, fileName string) error {
-	script, err := wb.Get(wbName)
-	if err != nil {
-		return err
-	}
-
-	tmplSrc, err := script.Build()
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Create(path + "/" + fileName + wb.ext)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	if err := tmplSrc.Execute(f, script); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // Get returns an injected source.
@@ -88,14 +58,18 @@ func (wb *wbzr) Inject(src string, name string) (engine.Script, error) {
 		return nil, errors.New("Wooble " + name + " already exists. A name must be unique")
 	}
 	var sc engine.Script
+	var err error
+
 	switch wb.lang {
 	case JSES5:
-		sc, err := engine.NewJSES5(src, name)
-		if err != nil {
-			return nil, err
-		}
-		wb.scripts = append(wb.scripts, sc)
+		sc, err = engine.NewJSES5(src, name)
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	wb.scripts = append(wb.scripts, sc)
 	return sc, nil
 }
 
