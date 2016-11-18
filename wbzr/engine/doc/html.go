@@ -1,6 +1,8 @@
 package doc
 
 import (
+	"regexp"
+
 	h "golang.org/x/net/html"
 	"strings"
 )
@@ -31,7 +33,11 @@ func NewHTML(doc string) (*html, error) {
 
 func (html *html) ReadAndExecute(fn func(*h.Node, int)) {
 	n := html.curNode
-	if !isExcludedNode(n) {
+
+	// Fixes html string format, avoid " " text nodes, for insecable space use &nbsp;
+	isInvalid, _ := regexp.MatchString("^\\s+$", n.Data)
+
+	if !isExcludedNode(n) && !isInvalid {
 		fn(n, html.depthInd)
 	}
 	for c := html.curNode.FirstChild; c != nil; c = c.NextSibling {
