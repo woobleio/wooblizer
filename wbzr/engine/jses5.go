@@ -101,6 +101,9 @@ func (js *jses5) GetName() string { return js.name }
 func (js *jses5) GetSource() string { return js.src }
 
 func (js *jses5) IncludeHtml(src string) error {
+	// Fixes net/html new line reading as text node... It breaks the generated script
+	src = strings.Replace(src, "\n", "", -1)
+
 	doc, err := doc.NewHTML(src)
 	if err != nil {
 		return err
