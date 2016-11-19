@@ -34,8 +34,16 @@ func TestWrap(t *testing.T) {
 	}
 
 	src := `
-		<div id='divid'>
-		</div>`
+	<div id='divid'>
+		<p>This is a html and it should be included in the wooble</p>
+		<div class='square'></div>
+		<div class='square'></div>
+		<div class='square'></div>
+		<div class='square'></div>
+		<div class='square'>
+			<p>Hello world!</p>
+		</div>
+	</div>`
 
 	err = script1.IncludeHtml(src)
 	if err != nil {

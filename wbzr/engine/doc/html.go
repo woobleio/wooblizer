@@ -8,9 +8,8 @@ import (
 )
 
 type html struct {
-	depthInd int
-	doc      *h.Node
-	curNode  *h.Node
+	doc     *h.Node
+	curNode *h.Node
 }
 
 var exclNodes []interface{}
@@ -25,26 +24,28 @@ func NewHTML(doc string) (*html, error) {
 	addExcludedNodes("body", "html", "head", h.DoctypeNode, h.ErrorNode, h.DocumentNode, h.CommentNode)
 
 	return &html{
-		0,
 		node,
 		node,
 	}, nil
 }
 
-func (html *html) ReadAndExecute(fn func(*h.Node, int)) {
+// pIndex is parent node index in the tree (excluded and invalid nodes are not indexed)
+func (html *html) ReadAndExecute(fn func(*h.Node, int) int, pIndex int) {
 	n := html.curNode
 
 	// Fixes html string format, avoid " " text nodes, for insecable space use &nbsp;
 	isInvalid, _ := regexp.MatchString("^\\s+$", n.Data)
+	if isInvalid {
+		return
+	}
 
-	if !isExcludedNode(n) && !isInvalid {
-		fn(n, html.depthInd)
+	if !isExcludedNode(n) {
+		pIndex = fn(n, pIndex)
 	}
 	for c := html.curNode.FirstChild; c != nil; c = c.NextSibling {
 		html.curNode = c
-		html.ReadAndExecute(fn)
+		html.ReadAndExecute(fn, pIndex)
 	}
-	html.depthInd = html.depthInd + 1
 }
 
 func addExcludedNodes(nodes ...interface{}) {

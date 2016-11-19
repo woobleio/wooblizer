@@ -119,7 +119,7 @@ func (js *jses5) IncludeHtml(src string) error {
 	jsw.makeFunction("target")
 	jsw.affectVar("_d", "document")
 	jsw.affectVar(sRootVar, "_d.querySelector(target).attachShadow({mode:'open'})")
-	doc.ReadAndExecute(jsw.buildNode)
+	doc.ReadAndExecute(jsw.buildNode, 0)
 	jsw.affectAttr("this", docVar, sRootVar)
 	jsw.closeExpr()
 
@@ -328,7 +328,7 @@ func (jsw *jsWriter) appendChild(to string, toAppend string) {
 	jsw.endExpr()
 }
 
-func (jsw *jsWriter) buildNode(node *h.Node, index int) {
+func (jsw *jsWriter) buildNode(node *h.Node, pIndex int) int {
 	jsw.genUniqueVar()
 	jsw.affectVar("", "")
 	switch node.Type {
@@ -339,12 +339,9 @@ func (jsw *jsWriter) buildNode(node *h.Node, index int) {
 	}
 	jsw.setAttributes(node.Attr)
 
-	varIndex := len(jsw.vars) - index - 1
-	if varIndex < 0 {
-		// To node root when below 0
-		varIndex = 0
-	}
-	jsw.appendChild(jsw.vars[varIndex], "")
+	jsw.appendChild(jsw.vars[pIndex], "")
+
+	return len(jsw.vars) - 1
 }
 
 func (jsw *jsWriter) closeExpr() {
