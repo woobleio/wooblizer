@@ -20,7 +20,7 @@ func TestInject(t *testing.T) {
 	}
 }
 
-func TestWrap(t *testing.T) {
+func TestSecureAndWrap(t *testing.T) {
 	wb := wbzr.New(wbzr.JSES5)
 
 	script1, err := wb.Inject("obj = { _init: function() { console.log('hello'); } }", "obj1")
@@ -35,14 +35,6 @@ func TestWrap(t *testing.T) {
 
 	src := `
 	<div id='divid'>
-		<p>This is a html and it should be included in the wooble</p>
-		<div class='square'></div>
-		<div class='square'></div>
-		<div class='square'></div>
-		<div class='square'></div>
-		<div class='square'>
-			<p>Hello world!</p>
-		</div>
 	</div>`
 
 	err = script1.IncludeHtml(src)
@@ -53,12 +45,12 @@ func TestWrap(t *testing.T) {
 	script2.IncludeHtml("<span></span>")
 	script2.IncludeCss("#div { color: red }")
 
-	bf, err := wb.Wrap()
+	bf, err := wb.SecureAndWrap("toto.com", "tata.com")
 	if err != nil {
 		t.Error("Failed to wrap, error %s", err)
 	}
 
-	expected := `var cs = {"obj1":{_init:function() { console.log('hello'); },_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("div");_sr.appendChild(b);this._doc = _sr;}},"obj2":{_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("span");_sr.appendChild(b);this._doc = _sr;},_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "#div { color: red }";this._doc.appendChild(a);}}}`
+	expected := `var ah = ["toto.com","tata.com"];var xx = ah.indexOf(window.location.hostname);if(ah.indexOf(window.location.hostname) == -1) {console.log("Wooble error : domain restricted");return;}`
 	if strings.Contains(bf.String(), expected) {
 		t.Logf("expected : %s", expected)
 		t.Logf("current : %s", bf.String())

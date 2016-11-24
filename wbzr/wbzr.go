@@ -19,8 +19,10 @@ const (
 )
 
 type wbzr struct {
+	DomainsSec []string
+	Scripts    []engine.Script
+
 	lang     ScriptLang
-	scripts  []engine.Script
 	skeleton string
 }
 
@@ -35,15 +37,16 @@ func New(sl ScriptLang) *wbzr {
 	}
 
 	return &wbzr{
-		sl,
+		nil,
 		make([]engine.Script, 0),
+		sl,
 		skeleton,
 	}
 }
 
 // Get returns an injected source.
 func (wb *wbzr) Get(name string) (engine.Script, error) {
-	for _, sc := range wb.scripts {
+	for _, sc := range wb.Scripts {
 		if sc.GetName() == name {
 			return sc, nil
 		}
@@ -69,7 +72,7 @@ func (wb *wbzr) Inject(src string, name string) (engine.Script, error) {
 		return nil, err
 	}
 
-	wb.scripts = append(wb.scripts, sc)
+	wb.Scripts = append(wb.Scripts, sc)
 	return sc, nil
 }
 
@@ -83,10 +86,20 @@ func (wb *wbzr) InjectFile(path string, name string) (engine.Script, error) {
 	return wb.Inject(string(c[:]), name)
 }
 
+// Secure set some domains to protect the script and make it works only for specific domains
+func (wb *wbzr) Secure(domains ...string) {
+	wb.DomainsSec = domains
+}
+
+func (wb *wbzr) SecureAndWrap(domains ...string) (*bytes.Buffer, error) {
+	wb.Secure(domains...)
+	return wb.Wrap()
+}
+
 // Wrap packages some woobles (all the woobles injected in the wbzr)
 // and build a file which contains the wooble library.
 func (wb *wbzr) Wrap() (*bytes.Buffer, error) {
-	for _, sc := range wb.scripts {
+	for _, sc := range wb.Scripts {
 		if _, err := sc.Build(); err != nil {
 			return nil, err
 		}
@@ -95,7 +108,7 @@ func (wb *wbzr) Wrap() (*bytes.Buffer, error) {
 	tmpl := template.Must(template.New("WbJSES5").Parse(wbJses5))
 
 	var out bytes.Buffer
-	if err := tmpl.Execute(&out, wb.scripts); err != nil {
+	if err := tmpl.Execute(&out, wb); err != nil {
 		return nil, err
 	}
 
@@ -104,23 +117,32 @@ func (wb *wbzr) Wrap() (*bytes.Buffer, error) {
 
 var wbJses5 = `
 function Wb(id) {
+	{{if .DomainsSec}}
+	var ah = [{{range $i, $o := .DomainsSec}}"{{$o}}"{{if not $i}},{{end}}{{end}}];
+  var xx = ah.indexOf(window.location.hostname);
+  if(ah.indexOf(window.location.hostname) == -1) {
+  	console.log("Wooble error : domain restricted");
+    return;
+  }
+	{{end}}
+
 	if(window === this) {
   	return new Wb(id);
   }
 
   var cs = {
-  	{{range $i, $o := .}}"{{$o.GetName}}":{{"{"}}{{$o.GetSource}}{{"}"}}{{if not $i}},{{end}}{{end}}
+  	{{range $i, $o := .Scripts}}"{{$o.GetName}}":{{"{"}}{{$o.GetSource}}{{"}"}}{{if not $i}},{{end}}{{end}}
   }
 
   var c = cs[id];
   if(typeof c == 'undefined') {
-  	console.log("creation", id, "not found");
+  	console.log("Wooble error : creation", id, "not found");
     return undefined;
   }
 
   this.init = function (target) {
     if(document.querySelector(target) == null) {
-    	console.log("Element", target, "not found in the document");
+    	console.log("Wooble error : Element", target, "not found in the document");
       return;
     }
 
