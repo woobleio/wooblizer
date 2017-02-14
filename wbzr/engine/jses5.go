@@ -9,7 +9,7 @@ import (
 	"text/template"
 
 	"github.com/robertkrimen/otto"
-	"github.com/woobleio/wooblizer/wbzr/engine/doc"
+	"github.com/woobleio/wooblizer/Wbzr/engine/doc"
 )
 
 type jses5 struct {

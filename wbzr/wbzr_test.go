@@ -1,14 +1,14 @@
-package wbzr_test
+package Wbzr_test
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/woobleio/wooblizer/wbzr"
+	"github.com/woobleio/wooblizer/Wbzr"
 )
 
 func TestInject(t *testing.T) {
-	wb := wbzr.New(wbzr.JSES5)
+	wb := Wbzr.New(Wbzr.JSES5)
 
 	if _, err := wb.Inject("obj={}", "foo"); err != nil {
 		t.Errorf("Failed to inject foo, error : %s", err)
@@ -21,7 +21,7 @@ func TestInject(t *testing.T) {
 }
 
 func TestSecureAndWrap(t *testing.T) {
-	wb := wbzr.New(wbzr.JSES5)
+	wb := Wbzr.New(Wbzr.JSES5)
 
 	script1, err := wb.Inject("obj = { _init: function() { console.log('hello'); } }", "obj1")
 	if err != nil {

@@ -1,14 +1,13 @@
-// Package wbzr provides tool to create a wooble in a given language and to package
+// Package Wbzr provides tool to create a wooble in a given language and to package
 // (wrap) some woobles.
-package wbzr
+package Wbzr
 
 import (
 	"bytes"
-	"errors"
 	"io/ioutil"
 	"text/template"
 
-	"github.com/woobleio/wooblizer/wbzr/engine"
+	"github.com/woobleio/wooblizer/Wbzr/engine"
 )
 
 // ScriptLang are constants for implemented script languages.
@@ -18,7 +17,7 @@ const (
 	JSES5 ScriptLang = iota
 )
 
-type wbzr struct {
+type Wbzr struct {
 	DomainsSec []string
 	Scripts    []engine.Script
 
@@ -27,7 +26,7 @@ type wbzr struct {
 }
 
 // New takes a script language which is used to inject and output a file.
-func New(sl ScriptLang) *wbzr {
+func New(sl ScriptLang) *Wbzr {
 	var skeleton string
 	switch sl {
 	case JSES5:
@@ -36,7 +35,7 @@ func New(sl ScriptLang) *wbzr {
 		panic("Language not supported")
 	}
 
-	return &wbzr{
+	return &Wbzr{
 		nil,
 		make([]engine.Script, 0),
 		sl,
@@ -45,20 +44,20 @@ func New(sl ScriptLang) *wbzr {
 }
 
 // Get returns an injected source.
-func (wb *wbzr) Get(name string) (engine.Script, error) {
+func (wb *Wbzr) Get(name string) (engine.Script, error) {
 	for _, sc := range wb.Scripts {
 		if sc.GetName() == name {
 			return sc, nil
 		}
 	}
-	return nil, errors.New("Wooble " + name + " not found")
+	return nil, ErrUniqueName
 }
 
 // Inject injects a source code to be wooblized. It takes a name which must be
 // unique. Src can be empty, it'll create a default object
-func (wb *wbzr) Inject(src string, name string) (engine.Script, error) {
+func (wb *Wbzr) Inject(src string, name string) (engine.Script, error) {
 	if _, err := wb.Get(name); err == nil {
-		return nil, errors.New("Wooble " + name + " already exists. A name must be unique")
+		return nil, ErrUniqueName
 	}
 	var sc engine.Script
 	var err error
@@ -77,7 +76,7 @@ func (wb *wbzr) Inject(src string, name string) (engine.Script, error) {
 }
 
 // InjectFile injects a source from a file.
-func (wb *wbzr) InjectFile(path string, name string) (engine.Script, error) {
+func (wb *Wbzr) InjectFile(path string, name string) (engine.Script, error) {
 	c, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -87,18 +86,18 @@ func (wb *wbzr) InjectFile(path string, name string) (engine.Script, error) {
 }
 
 // Secure set some domains to protect the script and make it works only for specific domains
-func (wb *wbzr) Secure(domains ...string) {
+func (wb *Wbzr) Secure(domains ...string) {
 	wb.DomainsSec = domains
 }
 
-func (wb *wbzr) SecureAndWrap(domains ...string) (*bytes.Buffer, error) {
+func (wb *Wbzr) SecureAndWrap(domains ...string) (*bytes.Buffer, error) {
 	wb.Secure(domains...)
 	return wb.Wrap()
 }
 
-// Wrap packages some woobles (all the woobles injected in the wbzr)
+// Wrap packages some woobles (all the woobles injected in the Wbzr)
 // and build a file which contains the wooble library.
-func (wb *wbzr) Wrap() (*bytes.Buffer, error) {
+func (wb *Wbzr) Wrap() (*bytes.Buffer, error) {
 	for _, sc := range wb.Scripts {
 		if _, err := sc.Build(); err != nil {
 			return nil, err
