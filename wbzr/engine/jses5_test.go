@@ -5,7 +5,7 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/woobleio/wooblizer/Wbzr/engine"
+	"github.com/woobleio/wooblizer/wbzr/engine"
 )
 
 func TestBuild(t *testing.T) {

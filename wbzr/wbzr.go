@@ -1,13 +1,13 @@
 // Package Wbzr provides tool to create a wooble in a given language and to package
 // (wrap) some woobles.
-package Wbzr
+package wbzr
 
 import (
 	"bytes"
 	"io/ioutil"
 	"text/template"
 
-	"github.com/woobleio/wooblizer/Wbzr/engine"
+	"github.com/woobleio/wooblizer/wbzr/engine"
 )
 
 // ScriptLang are constants for implemented script languages.

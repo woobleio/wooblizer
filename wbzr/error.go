@@ -1,4 +1,4 @@
-package Wbzr
+package wbzr
 
 import "errors"
 

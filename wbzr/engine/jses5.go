@@ -3,13 +3,14 @@ package engine
 import (
 	"bytes"
 	"errors"
-	h "golang.org/x/net/html"
 	"regexp"
 	"strings"
 	"text/template"
 
+	h "golang.org/x/net/html"
+
 	"github.com/robertkrimen/otto"
-	"github.com/woobleio/wooblizer/Wbzr/engine/doc"
+	"github.com/woobleio/wooblizer/wbzr/engine/doc"
 )
 
 type jses5 struct {
