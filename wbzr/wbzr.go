@@ -118,7 +118,7 @@ func (wb *Wbzr) Wrap() (*bytes.Buffer, error) {
 var WooblyJSES5 = `woobly = {
 	// Use this attribute instead of document. Ex: this._doc.stuff
 	// Use 'document' to access parent's document
-	_doc: document,
+	_doc: function() {return document},
   _init: function() {
     // Creation code at runtime
   },
