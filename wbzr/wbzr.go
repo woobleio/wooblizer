@@ -148,6 +148,8 @@ function Wb(id) {
     if("_buildDoc" in c) c._buildDoc(target);
     if("_buildStyle" in c) c._buildStyle();
     if("_init" in c) c._init();
+
+		return c;
   }
 
   this.get = function() {
