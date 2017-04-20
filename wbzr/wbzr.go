@@ -114,6 +114,18 @@ func (wb *Wbzr) Wrap() (*bytes.Buffer, error) {
 	return &out, nil
 }
 
+// WooblyJSES5 is a Wooble creation template for JSES5
+var WooblyJSES5 = `woobly = {
+	doc: document,
+  attribute: "a value (optionnal)",
+  _init: function() {
+    // Creation code at runtime
+  },
+  method: function(a, b) {
+    // a method (optionnal)
+  }
+}`
+
 var wbJses5 = `
 function Wb(id) {
 	{{if .DomainsSec}}
