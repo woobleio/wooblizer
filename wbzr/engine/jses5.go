@@ -20,7 +20,7 @@ type jses5 struct {
 	src     string
 }
 
-const docVar string = "_doc"
+const docVar string = "_doc()"
 
 func NewJSES5(src string, name string) (*jses5, error) {
 	if src == "" {
@@ -51,7 +51,7 @@ func (js *jses5) AddAttr(name string, val interface{}) error {
 
 func (js *jses5) AddMethod(name string, src string) error {
 	if !isAcceptedFieldName(name) {
-		return errors.New("This methode name should be an alphanumerical word")
+		return errors.New("This method name should be an alphanumerical word")
 	}
 
 	vm := otto.New()
@@ -86,10 +86,6 @@ func (js *jses5) Build() (*template.Template, error) {
 
 	toStr := jsw.bf.String()
 
-	if js.hasHtml {
-		toStr = replaceDocQueries(toStr)
-	}
-
 	js.src = toStr
 
 	tmpl := template.Must(template.New("jsObject").Parse(templateStr))
@@ -121,7 +117,7 @@ func (js *jses5) IncludeHtml(src string) error {
 	jsw.affectVar("_d", "document")
 	jsw.affectVar(sRootVar, "_d.querySelector(target).attachShadow({mode:'open'})")
 	doc.ReadAndExecute(jsw.buildNode, 0)
-	jsw.affectAttr("this", docVar, sRootVar)
+	jsw.affectAttr("this", "_doc", "function() { return "+sRootVar+"}")
 	jsw.closeExpr()
 
 	if err := js.AddMethod("_buildDoc", jsw.bf.String()); err != nil {
@@ -134,17 +130,14 @@ func (js *jses5) IncludeHtml(src string) error {
 }
 
 func (js *jses5) IncludeCss(css string) error {
-	jsw := newJsWriter("a", "document")
+	jsw := newJsWriter("a", docVar)
 
 	jsw.makeFunction()
 	jsw.affectVar("a", "")
 	jsw.createElement("", "style")
 	jsw.affectAttr("a", "innerHTML", "\""+sanitize(css)+"\"")
 
-	if js.hasHtml {
-		jsw.doc = "this." + docVar
-	}
-	jsw.appendChild(jsw.doc, "a")
+	jsw.appendChild("this."+jsw.doc, "a")
 	jsw.closeExpr()
 
 	err := js.AddMethod("_buildStyle", jsw.bf.String())
@@ -249,13 +242,6 @@ func formatVar(pVar otto.Value) (string, error) {
 
 func sanitize(src string) string {
 	rpcer := strings.NewReplacer("\n", "", "\t", "", "\r", "")
-	return rpcer.Replace(src)
-}
-
-func replaceDocQueries(src string) string {
-	rpcer := strings.NewReplacer("document.querySelector", "this."+docVar+".querySelector",
-		"document.querySelectorAll", "this."+docVar+".querySelectorAll",
-		"document.appendChild", "this."+docVar+".appendChild")
 	return rpcer.Replace(src)
 }
 

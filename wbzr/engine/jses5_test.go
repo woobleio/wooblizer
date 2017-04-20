@@ -104,7 +104,7 @@ func TestIncludeHtml(t *testing.T) {
 	 *   }
 	 * }
 	 */
-	expectedStr := `objForTest={_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("div");b.setAttribute("class", "classel");_sr.appendChild(b);var c = _d.createElement("p");c.setAttribute("id", "paragraph");b.appendChild(c);var d = _d.createTextNode("this is a text");c.appendChild(d);var e = _d.createElement("div");e.setAttribute("data", "a data");b.appendChild(e);var f = _d.createElement("span");f.setAttribute("class", "first-class second-class");f.setAttribute("id", "spanid");_sr.appendChild(f);this._doc = _sr;}}`
+	expectedStr := `objForTest={_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("div");b.setAttribute("class", "classel");_sr.appendChild(b);var c = _d.createElement("p");c.setAttribute("id", "paragraph");b.appendChild(c);var d = _d.createTextNode("this is a text");c.appendChild(d);var e = _d.createElement("div");e.setAttribute("data", "a data");b.appendChild(e);var f = _d.createElement("span");f.setAttribute("class", "first-class second-class");f.setAttribute("id", "spanid");_sr.appendChild(f);this._doc = function() { return _sr};}}`
 
 	if err := js.IncludeHtml("<div class='classel'><p id='paragraph'>this is a text</p><div data='a data'></div></div><span class='first-class second-class' id='spanid'></span>"); err != nil {
 		t.Errorf("IncludeHtml failed, error : %s", err)
@@ -149,7 +149,7 @@ func TestIncludeCss(t *testing.T) {
 	 *   }
 	 * }
 	 */
-	expectedStr := `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";document.appendChild(a);}}`
+	expectedStr := `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";this._doc().appendChild(a);}}`
 
 	if err := js.IncludeCss(css); err != nil {
 		t.Errorf("IncludeCss failed, error : %s", err)
@@ -197,7 +197,7 @@ func TestIncludeCss(t *testing.T) {
 	 *   }
 	 * }
 	 */
-	expectedStr = `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";this._doc.appendChild(a);},_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("p");b.setAttribute("id", "id");_sr.appendChild(b);var c = _d.createTextNode("hello world");b.appendChild(c);this._doc = _sr;}}`
+	expectedStr = `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";this._doc().appendChild(a);},_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("p");b.setAttribute("id", "id");_sr.appendChild(b);var c = _d.createTextNode("hello world");b.appendChild(c);this._doc = function() { return _sr};}}`
 
 	tmpl, err = js.Build()
 	if err != nil {

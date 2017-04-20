@@ -116,13 +116,13 @@ func (wb *Wbzr) Wrap() (*bytes.Buffer, error) {
 
 // WooblyJSES5 is a Wooble creation template for JSES5
 var WooblyJSES5 = `woobly = {
-	// Use this attribute to use this creation document (such as this._doc.stuff), otherwise
-	// you may use 'document' (document.stuff) to use creation's parent when a user uses your creation
-	doc: document,
-  attribute: "a value (optionnal)",
+	// Use this attribute instead of document. Ex: this._doc.stuff
+	// Use 'document' to access parent's document
+	_doc: document,
   _init: function() {
     // Creation code at runtime
   },
+	attribute: "a value (optionnal)",
   method: function(a, b) {
     // a method (optionnal)
   }

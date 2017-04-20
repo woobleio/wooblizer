@@ -22,7 +22,7 @@ func TestInject(t *testing.T) {
 func TestSecureAndWrap(t *testing.T) {
 	wb := wbzr.New(wbzr.JSES5)
 
-	script1, err := wb.Inject("obj = { _init: function() { console.log('hello'); } }", "obj1")
+	script1, err := wb.Inject("obj = { _doc: function() { return document; }, _init: function() { console.log('hello'); } }", "obj1")
 	if err != nil {
 		t.Error("Failed to inject the first script, error : %s", err)
 	}
