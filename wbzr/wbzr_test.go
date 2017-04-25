@@ -49,6 +49,8 @@ func TestSecureAndWrap(t *testing.T) {
 		t.Error("Failed to wrap, error %s", err)
 	}
 
+	t.Logf("%s - %d - %d", bf.String(), len(wb.Scripts), len(wb.DomainsSec))
+
 	expected := `var ah = ["toto.com","tata.com"];var xx = ah.indexOf(window.location.hostname);if(ah.indexOf(window.location.hostname) == -1) {console.log("Wooble error : domain restricted");return;}`
 	if strings.Contains(bf.String(), expected) {
 		t.Logf("expected : %s", expected)
