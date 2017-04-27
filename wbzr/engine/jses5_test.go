@@ -46,11 +46,11 @@ func TestBuild(t *testing.T) {
 
 	/*
 	 * objForTest={
-	 *   testObj:{field:"yu",fieldObj:{childNum:2.5,childStr:"15 - 15"}},
+	 *   testObj:{field:'yu',fieldObj:{childNum:2.5,childStr:'15 - 15'}},
 	 *   testArrNum:[1,2,3,4],
-	 *   addStr:"hello",
+	 *   addStr:'hello',
 	 *   addNum:10.2,
-	 *   addArrStr:{0:"str1",1:"str2"},
+	 *   addArrStr:{0:'str1',1:'str2'},
 	 *   addFn:function(a, b){
 	 *     console.log('new fn');
 	 *     document.querySelector('#elid');
@@ -59,7 +59,7 @@ func TestBuild(t *testing.T) {
 	 *   }
 	 * }
 	 */
-	expectedStr := `objForTest={testObj:{field:"yu",fieldObj:{childNum:2.5,childStr:"15 - 15"}},testArrNum:[1,2,3,4],addStr:"hello",addNum:10.2,addArrStr:{0:"str1",1:"str2"},addFn:function(a, b){ console.log('new fn'); document.querySelector('#elid'); document.querySelectorAll('div'); document.querySelectorAll('.elclass'); }}`
+	expectedStr := `objForTest={testObj:{field:'yu',fieldObj:{childNum:2.5,childStr:'15 - 15'}},testArrNum:[1,2,3,4],addStr:'hello',addNum:10.2,addArrStr:{0:'str1',1:'str2'},addFn:function(a, b){ console.log('new fn'); document.querySelector('#elid'); document.querySelectorAll('div'); document.querySelectorAll('.elclass'); }}`
 
 	tmpl, err := js.Build()
 	if err != nil {
@@ -149,7 +149,7 @@ func TestIncludeCss(t *testing.T) {
 	 *   }
 	 * }
 	 */
-	expectedStr := `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";this._doc().appendChild(a);}}`
+	expectedStr := `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = '  p {    color: red;  }  #id {    font-size: 2em;  }  ';this._doc().appendChild(a);}}`
 
 	if err := js.IncludeCss(css); err != nil {
 		t.Errorf("IncludeCss failed, error : %s", err)
@@ -197,7 +197,7 @@ func TestIncludeCss(t *testing.T) {
 	 *   }
 	 * }
 	 */
-	expectedStr = `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = "  p {    color: red;  }  #id {    font-size: 2em;  }  ";this._doc().appendChild(a);},_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("p");b.setAttribute("id", "id");_sr.appendChild(b);var c = _d.createTextNode("hello world");b.appendChild(c);this._doc = function() { return _sr};}}`
+	expectedStr = `objForTest={_buildStyle:function(){var a = document.createElement("style");a.innerHTML = '  p {    color: red;  }  #id {    font-size: 2em;  }  ';this._doc().appendChild(a);},_buildDoc:function(target){var _d = document;var _sr = _d.querySelector(target).attachShadow({mode:'open'});var b = _d.createElement("p");b.setAttribute("id", "id");_sr.appendChild(b);var c = _d.createTextNode("hello world");b.appendChild(c);this._doc = function() { return _sr};}}`
 
 	tmpl, err = js.Build()
 	if err != nil {
