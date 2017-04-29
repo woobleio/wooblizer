@@ -186,8 +186,6 @@ function Wb(id) {
         }
       }
     });
-
-		return c;
   }
 
 	this._build = function(target) {
