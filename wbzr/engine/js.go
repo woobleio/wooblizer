@@ -51,12 +51,12 @@ func (js *JS) IncludeHTMLCSS(srcHTML string, srcCSS string) error {
 		if string(srcToBytes[index:index+1]) == ")" {
 			coma = ""
 		}
+		// Insert target parameter in the object constructor
 		js.Src = string(append(srcToBytes[:index], append([]byte("_t_"+coma), srcToBytes[index:]...)...))
 
 		jsw.affectVar(sRootVar, "document.querySelector(_t_).attachShadow({mode:'open'})")
 		doc.ReadAndExecute(jsw.buildNode, 0)
 		jsw.affectAttr("this", "document", sRootVar)
-
 	}
 
 	if srcCSS != "" {
