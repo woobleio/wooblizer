@@ -33,7 +33,7 @@ func (js *JS) IncludeHTMLCSS(srcHTML string, srcCSS string) error {
 		return errors.New("DOM error : " + err.Error())
 	}
 
-	initDocCode := `this.document = document;`
+	initDocCode := `this.document[ ]?=[ ]?document[;]?`
 	initDocRegex := regexp.MustCompile(`.*` + initDocCode + `.*`)
 	if !initDocRegex.MatchString(js.Src) {
 		return errors.New("No document initilization found. this.document = document is required in the object consctructor")
@@ -69,7 +69,7 @@ func (js *JS) IncludeHTMLCSS(srcHTML string, srcCSS string) error {
 			jsw.appendChild(docVar, styleVar)
 		} else {
 			// Rewrite document initialization to override the replaceAll
-			jsw.bf.WriteString(initDocCode)
+			jsw.bf.WriteString("this.document=document;")
 			jsw.appendChild(docVar+".head", styleVar)
 		}
 	}
