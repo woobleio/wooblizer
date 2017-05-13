@@ -21,53 +21,39 @@ func TestInject(t *testing.T) {
 func TestSecureAndWrap(t *testing.T) {
 	wb := wbzr.New(wbzr.JS)
 
-	script1, err := wb.Inject(`var Woobly = function () {
-  function Woobly(toto) {
-    _classCallCheck(this, Woobly);
-		this.document = document;
-  }
+	/*script1, err := wb.Inject(`var Woobly = function () {
+	  function Woobly(toto) {
+	    _classCallCheck(this, Woobly);
+			this.document = document;
+	  }
 
-  _createClass(Woobly, [{
-    key: "getDocument",
-    value: function getDocument() {
-      return document;
-    }
-  }]);
+	  _createClass(Woobly, [{
+	    key: "getDocument",
+	    value: function getDocument() {
+	      return document;
+	    }
+	  }]);
 
-  return Woobly;
-}();`, "obj1")
+	  return Woobly;
+	}();`, "obj1")
 
-	if err != nil {
-		t.Error("Failed to inject the first script, error : %s", err)
-	}
+		if err != nil {
+			t.Error("Failed to inject the first script, error : %s", err)
+		}*/
 
-	script2, _ := wb.Inject(`var Woobly=function () {
-  function Woobly() {
-    _classCallCheck(this, Woobly);
-		this.document = document;
-  }
+	script2, _ := wb.Inject(`var Woobly = function(){function Woobly(){_classCallCheck(this,Woobly);this.document=document}_createClass(Woobly,[{key:"toto",value:function toto(lol){}}]);return Woobly}();`, "obj2")
 
-  _createClass(Woobly, [{
-    key: "getDocument",
-    value: function getDocument() {
-      return document;
-    }
-  }]);
+	// src := `
+	// <div id='divid'>
+	// 	yoyo
+	// </div>`
 
-  return Woobly;
-}();`, "obj2")
+	// err = script1.IncludeHTMLCSS(src, "div { color: red; }")
+	// if err != nil {
+	// 	t.Error("Failed to include HTML in script1, error : %s", err)
+	// }
 
-	src := `
-	<div id='divid'>
-		yoyo
-	</div>`
-
-	err = script1.IncludeHTMLCSS(src, "div { color: red; }")
-	if err != nil {
-		t.Error("Failed to include HTML in script1, error : %s", err)
-	}
-
-	err = script2.IncludeHTMLCSS("", "div { color: red; }")
+	err := script2.IncludeHTMLCSS("", "div { color: red; }")
 	if err != nil {
 		t.Error("Failed to include HTML in script2, error : %s", err)
 	}

@@ -33,8 +33,7 @@ func (js *JS) IncludeHTMLCSS(srcHTML string, srcCSS string) error {
 		return errors.New("DOM error : " + err.Error())
 	}
 
-	initDocCode := `this.document[ ]?=[ ]?document[;]?`
-	initDocRegex := regexp.MustCompile(`.*` + initDocCode + `.*`)
+	initDocRegex := regexp.MustCompile(`this.document[ ]?=[ ]?document[;]?`)
 	if !initDocRegex.MatchString(js.Src) {
 		return errors.New("No document initilization found. this.document = document is required in the object consctructor")
 	}
