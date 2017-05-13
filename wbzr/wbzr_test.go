@@ -41,7 +41,7 @@ func TestSecureAndWrap(t *testing.T) {
 		t.Error("Failed to inject the first script, error : %s", err)
 	}
 
-	script2, _ := wb.Inject(`var Woobly = function () {
+	script2, _ := wb.Inject(`var Woobly=function () {
   function Woobly() {
     _classCallCheck(this, Woobly);
 		this.document = document;

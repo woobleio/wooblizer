@@ -67,7 +67,7 @@ func (wb *Wbzr) Inject(src string, name string) (engine.Script, error) {
 
 	switch wb.lang {
 	case JS:
-		rmVar := regexp.MustCompile(`^var Woobly =`)
+		rmVar := regexp.MustCompile(`^var Woobly[ ]?=`)
 		src = rmVar.ReplaceAllString(src, "")
 		src = strings.TrimRight(src, ";")
 		sc = &engine.JS{
