@@ -9,7 +9,7 @@ import (
 
 func TestInject(t *testing.T) {
 	wb := wbzr.New(wbzr.JS)
-	if _, errs := wb.Inject("var Woobly = function(){function Woobly(){}}", "foo"); len(errs) == 0 || (len(errs) > 0 && errs[0] != engine.ErrNoDocInit) {
+	if _, errs := wb.Inject("var Woobly=function Woobly(){};", "foo"); len(errs) == 0 || (len(errs) > 0 && errs[0] != engine.ErrNoDocInit) {
 		t.Error("Inject 1 : Should trigger an error => No document initializer")
 	}
 

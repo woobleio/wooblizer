@@ -8,19 +8,11 @@ import (
 )
 
 func TestIncludeHtml(t *testing.T) {
-	src := `var Woobly = function() {
-		function Woobly() {
-			_classCallCheck(this, woobly);
-
-			this.document = document;
-
-			var a = 2;
-		}
-
-		return Woobly;
-	}`
+	src := `var Woobly=function Woobly(){_classCallCheck(this,Woobly);this.document=document};`
 
 	s, errs := engine.NewJS("objForTest", src)
+
+	t.Log(errs)
 
 	if len(errs) > 0 {
 		t.Error("The JS class is invalid")
