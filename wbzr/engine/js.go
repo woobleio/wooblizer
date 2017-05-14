@@ -104,7 +104,7 @@ func (js *JS) IncludeHTMLCSS(srcHTML string, srcCSS string) error {
 func (js *JS) Control() []error {
 	docR := regexp.MustCompile(docRegex)
 	constR := regexp.MustCompile(constructorRegex)
-	classR := regexp.MustCompile(classRegex)
+	classR := regexp.MustCompile(classRegex + ".*")
 
 	errs := make([]error, 0)
 
