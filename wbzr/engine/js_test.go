@@ -20,9 +20,10 @@ func TestIncludeHtml(t *testing.T) {
 		return Woobly;
 	}`
 
-	s := &engine.JS{
-		Name: "objForTest",
-		Src:  src,
+	s, errs := engine.NewJS("objForTest", src)
+
+	if len(errs) > 0 {
+		t.Error("The JS class is invalid")
 	}
 
 	s.IncludeHTMLCSS("<div class='heelo' id='hello'>test</div>", "div { color: red }")
@@ -33,10 +34,7 @@ func TestIncludeHtml(t *testing.T) {
 		t.Error("Includes good HTML and good CSS : Unexpected source")
 	}
 
-	s = &engine.JS{
-		Name: "objForTest",
-		Src:  src,
-	}
+	s, errs = engine.NewJS("objForTest", src)
 
 	s.IncludeHTMLCSS("", "div { color: red; }")
 

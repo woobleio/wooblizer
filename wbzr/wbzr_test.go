@@ -4,24 +4,33 @@ import (
 	"testing"
 
 	"github.com/woobleio/wooblizer/wbzr"
+	"github.com/woobleio/wooblizer/wbzr/engine"
 )
 
 func TestInject(t *testing.T) {
 	wb := wbzr.New(wbzr.JS)
-	if _, err := wb.Inject("obj={}", "foo"); err != nil {
-		t.Errorf("Failed to inject foo, error : %s", err)
+	if _, errs := wb.Inject("var Woobly = function(){function Woobly(){}}", "foo"); len(errs) == 0 || (len(errs) > 0 && errs[0] != engine.ErrNoDocInit) {
+		t.Error("Inject 1 : Should trigger an error => No document initializer")
+	}
+
+	if _, errs := wb.Inject("var Foobar = function(){function Foobar(){this.document=document}}", "bar"); len(errs) == 0 || (len(errs) > 0 && errs[0] != engine.ErrNoClassFound) {
+		t.Error("Inject 2 : Should tigger an error => No class found")
+	}
+
+	if _, errs := wb.Inject("var Woobly = function(){}", "foobar"); len(errs) == 0 || (len(errs) > 0 && errs[0] != engine.ErrNoConstructor) {
+		t.Error("Inject 3 : Should tigger an error => No constructor found")
 	}
 
 	// foo already exists
 	if _, err := wb.Inject("otherObj={}", "foo"); err == nil {
-		t.Error("It should trigger an error, but it returns a nil error")
+		t.Error("Inject 4 : Should trigger an error => Unique alias only")
 	}
 }
 
 func TestSecureAndWrap(t *testing.T) {
 	wb := wbzr.New(wbzr.JS)
 
-	/*script1, err := wb.Inject(`var Woobly = function () {
+	script1, errs := wb.Inject(`var Woobly = function () {
 	  function Woobly(toto) {
 	    _classCallCheck(this, Woobly);
 			this.document = document;
@@ -37,30 +46,28 @@ func TestSecureAndWrap(t *testing.T) {
 	  return Woobly;
 	}();`, "obj1")
 
-		if err != nil {
-			t.Error("Failed to inject the first script, error : %s", err)
-		}*/
+	if len(errs) > 0 {
+		t.Error("Failed to inject the first script, error : %s", errs)
+	}
 
 	script2, _ := wb.Inject(`var Woobly = function(){function Woobly(){_classCallCheck(this,Woobly);this.document=document}_createClass(Woobly,[{key:"toto",value:function toto(lol){}}]);return Woobly}();`, "obj2")
 
-	// src := `
-	// <div id='divid'>
-	// 	yoyo
-	// </div>`
+	src := `
+	<div id='divid'>
+		yoyo
+	</div>`
 
-	// err = script1.IncludeHTMLCSS(src, "div { color: red; }")
-	// if err != nil {
-	// 	t.Error("Failed to include HTML in script1, error : %s", err)
-	// }
-
-	err := script2.IncludeHTMLCSS("", "div { color: red; }")
-	if err != nil {
-		t.Error("Failed to include HTML in script2, error : %s", err)
+	if err := script1.IncludeHTMLCSS(src, "div { color: red; }"); err != nil {
+		t.Errorf("Failed to include HTML in script1, error : %s", err)
 	}
 
-	bf, err := wb.SecureAndWrap("toto.com", "tata.com")
-	if err != nil {
-		t.Error("Failed to wrap, error %s", err)
+	if err := script2.IncludeHTMLCSS("", "div { color: red; }"); err != nil {
+		t.Errorf("Failed to include HTML in script2, error : %s", err)
+	}
+
+	bf, errWrap := wb.SecureAndWrap("toto.com", "tata.com")
+	if errWrap != nil {
+		t.Error("Failed to wrap, error %s", errWrap)
 	}
 
 	t.Log(bf.String())
