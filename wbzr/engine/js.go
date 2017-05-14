@@ -22,7 +22,7 @@ const docVar string = "this.document"
 const (
 	docRegex         string = `this.document[ ]?=[ ]?document[;]?`
 	constructorRegex string = `.*function Woobly\(`
-	classRegex       string = `^var Woobly[ ]?=`
+	classRegex       string = `var Woobly[ ]?=`
 )
 
 // NewJS initializes a JS and returns errors if the class isn't in the standard
@@ -104,7 +104,7 @@ func (js *JS) IncludeHTMLCSS(srcHTML string, srcCSS string) error {
 func (js *JS) Control() []error {
 	docR := regexp.MustCompile(docRegex)
 	constR := regexp.MustCompile(constructorRegex)
-	classR := regexp.MustCompile(classRegex + ".*")
+	classR := regexp.MustCompile(classRegex + "[ ]?function.*")
 
 	errs := make([]error, 0)
 
