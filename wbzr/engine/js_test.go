@@ -10,7 +10,7 @@ import (
 func TestIncludeHtml(t *testing.T) {
 	src := `var Woobly=function Woobly(){_classCallCheck(this,Woobly);this.document=document};`
 
-	s, errs := engine.NewJS("objForTest", src)
+	s, errs := engine.NewJS("objForTest", src, nil)
 
 	t.Log(errs)
 
@@ -26,7 +26,7 @@ func TestIncludeHtml(t *testing.T) {
 		t.Error("Includes good HTML and good CSS : Unexpected source")
 	}
 
-	s, errs = engine.NewJS("objForTest", src)
+	s, errs = engine.NewJS("objForTest", src, nil)
 
 	s.IncludeHTMLCSS("", "div { color: red; }")
 
