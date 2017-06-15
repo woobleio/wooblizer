@@ -129,10 +129,10 @@ func (wb *Wbzr) Wrap() (*bytes.Buffer, error) {
 var WooblyJS = `class Woobly {
 
 	constructor(params) {
-		// This is mandatory. Use this.document to query elements in your creation
-		// (this.document.queryAll('div')), use document for manipulating the
-		// document parent (document.createElement('div'))
-		this.document = document;
+		// This is mandatory.
+		// Use this.document.querySelector to query elements in your creation
+		// Use document to call document prototypes such as document.createElement
+		this.document = document.body.attachShadow({mode: 'open'});
 
 		/*
 		 * Your creation start-up code
