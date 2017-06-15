@@ -184,12 +184,11 @@ function Wb(id) {
   }
 
   this.init = function (tar, p) {
-    if(typeof tar === 'string' && document.querySelector(tar) == null) {
+    if(document.querySelector(tar) == null) {
     	console.log("Wooble error : Element", tar, "not found in the document");
       return;
     }
 
-		if(typeof tar === 'object') p = tar;
 		if (p) {
 			var _ = cs['__'+id];
 			for (prop in p) {
@@ -207,10 +206,10 @@ function Wb(id) {
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.0-rc.11/webcomponents-lite.js';
         document.getElementsByTagName('head')[0].appendChild(s);
         s.onload = function() {
-          typeof tar === 'string' ? r(new c(tar,p)) : r(new c(p));
+          r(new c(tar,p));
         }
       } else {
-        typeof tar === 'string' ? r(new c(tar,p)) : r(new c(p));
+        r(new c(tar,p));
       }
     });
   }

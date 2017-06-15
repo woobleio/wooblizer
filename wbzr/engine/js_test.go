@@ -8,7 +8,7 @@ import (
 )
 
 func TestIncludeHtml(t *testing.T) {
-	src := `var Woobly=function Woobly(){_classCallCheck(this,Woobly);this.document=document};`
+	src := `var Woobly=function Woobly(){_classCallCheck(this,Woobly);this.document=document.body.attachShadow({mode:'open'})};`
 
 	s, errs := engine.NewJS("objForTest", src, nil)
 
@@ -30,7 +30,7 @@ func TestIncludeHtml(t *testing.T) {
 
 	s.IncludeHTMLCSS("", "div { color: red; }")
 
-	expected = `var __s = document.createElement('style');__s.innerHTML = 'div { color: red; }';this.document=document;this.document.head.appendChild(__s);`
+	expected = `function Woobly(_t_){_classCallCheck(this,Woobly);var _sr_ = document.querySelector(_t_).attachShadow({mode:'open'});this.document = _sr_;var __s = document.createElement('style');__s.innerHTML = 'div { color: red; }';this.document.appendChild(__s);{mode:'open'})}`
 
 	if !strings.Contains(s.Src, expected) {
 		t.Error("Includes only HTML : Unexpected source")

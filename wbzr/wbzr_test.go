@@ -37,7 +37,7 @@ func TestSecureAndWrap(t *testing.T) {
 	script1, errs := wb.Inject(`var Woobly = function () {
 	  function Woobly(params) {
 	    _classCallCheck(this, Woobly);
-			this.document = document;
+			this.document = document.body.attachShadow({mode:'open'});
 	  }
 
 	  _createClass(Woobly, [{
@@ -54,7 +54,7 @@ func TestSecureAndWrap(t *testing.T) {
 		t.Error("Failed to inject the first script, error : %s", errs)
 	}
 
-	script2, _ := wb.Inject(`var Woobly = function(){function Woobly(params){_classCallCheck(this,Woobly);this.document=document}_createClass(Woobly,[{key:"toto",value:function toto(lol){}}]);return Woobly}();`, "obj2", params)
+	script2, _ := wb.Inject(`var Woobly = function(){function Woobly(params){_classCallCheck(this,Woobly);this.document=document.body.attachShadow({mode:'open'})}_createClass(Woobly,[{key:"toto",value:function toto(lol){}}]);return Woobly}();`, "obj2", params)
 
 	src := `
 	<div id='divid'>
