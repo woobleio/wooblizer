@@ -8,7 +8,7 @@ import (
 )
 
 func TestIncludeHtml(t *testing.T) {
-	src := `var Woobly=function Woobly(){_classCallCheck(this,Woobly);this.document=document.body.attachShadow({mode:'open'})};`
+	src := `var Woobly=function Woobly(){_classCallCheck(this,Woobly);this.document=document.body.shadowRoot};`
 
 	s, errs := engine.NewJS("objForTest", src, nil)
 
