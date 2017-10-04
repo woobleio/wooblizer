@@ -198,6 +198,7 @@ function Wb(id) {
 		} else p = cs['__'+id];
 
 		var t = this;
+		var _cs = [];
     return new Promise(function(r, e) {
       if (!document.head.attachShadow) {
         // Browsers shadow dom support with polyfill
@@ -206,10 +207,12 @@ function Wb(id) {
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.14/webcomponents-sd-ce.js';
         document.getElementsByTagName('head')[0].appendChild(s);
         s.onload = function() {
-          r(new c(tar,p));
+					for (var d of document.querySelectorAll(tar)) _cs.push(new c(tar,p));
+          r(_cs);
         }
       } else {
-        r(new c(tar,p));
+				for (var d of document.querySelectorAll(tar)) _cs.push(new c(tar,p));
+        r(_cs);
       }
     });
   }
