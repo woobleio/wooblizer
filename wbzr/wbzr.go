@@ -207,11 +207,11 @@ function Wb(id) {
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.14/webcomponents-sd-ce.js';
         document.getElementsByTagName('head')[0].appendChild(s);
         s.onload = function() {
-					for (var d of document.querySelectorAll(tar)) _cs.push(new c(tar,p));
+					for (var d of document.querySelectorAll(tar)) _cs.push(new c(d,p));
           r(_cs);
         }
       } else {
-				for (var d of document.querySelectorAll(tar)) _cs.push(new c(tar,p));
+				for (var d of document.querySelectorAll(tar)) _cs.push(new c(d,p));
         r(_cs);
       }
     });
