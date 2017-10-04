@@ -203,7 +203,7 @@ function Wb(id) {
         // Browsers shadow dom support with polyfill
         var s = document.createElement('script');
         s.type = 'text/javascript';
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.0-rc.11/webcomponents-lite.js';
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.14/webcomponents-sd-ce.js';
         document.getElementsByTagName('head')[0].appendChild(s);
         s.onload = function() {
           r(new c(tar,p));
