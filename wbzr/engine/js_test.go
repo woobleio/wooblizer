@@ -26,6 +26,10 @@ func TestIncludeHtml(t *testing.T) {
 
 	s, errs = engine.NewJS("objForTest", src, nil)
 
+	if len(errs) > 0 {
+		t.Error("The JS class (second try) is invalid")
+	}
+
 	s.IncludeHTMLCSS("", "div { color: red; }")
 
 	expected = `function Woobly(_t_){_classCallCheck(this,Woobly);var _sr_ = _t_.attachShadow({mode:'open'});this.document = _sr_;var __s = document.createElement('style');__s.innerHTML = 'div { color: red; }';this.document.appendChild(__s);}`
