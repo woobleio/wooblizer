@@ -70,8 +70,8 @@ bf, err := wb.Wrap()
 Wooble consider two types of engines, as everything if very different, I choose
 to make a structure that separates them through the Engine interface.
 
-For instance the Engine JS is for JavaScript ES2015 only. It cant accepts ES6, it
-has to be [babelified](https://babeljs.io/repl/) to ES2015 to be compatibles with this engine.
+For instance the Engine JS is for JavaScript ES2015 only. It cant handle ES6, it
+has to be [babelified](https://babeljs.io/repl/) to ES2015 to be compatible with this engine.
 
 An Engine can be a framework such as Angular4 even though we might think that it
 is a ES6 code that could fit in an Engine that we might call "JS6". Angular4 has some
@@ -84,7 +84,6 @@ and allow Wooble to offer the best experience for every frameworks / libraries /
 A source should be an object in the following form
 
 ```js
-obj = {
 var Woobly = function () {
   function Woobly(params) {
     _classCallCheck(this, Woobly);
@@ -101,7 +100,6 @@ var Woobly = function () {
 
   return Woobly;
 }();
-}
 ```
 
 Or, it is possible to make a class with JavaScript ES6 and to "babelify" it to ES2015 in order to be processed by Wooble (wooblelized).
@@ -110,7 +108,7 @@ Or, it is possible to make a class with JavaScript ES6 and to "babelify" it to E
 class Woobly {
 
 	constructor(params) {
-		this.document = document.body.shadowRoot;
+    this.document = document.body.shadowRoot;
 
     console.log(params);
 	}
@@ -129,4 +127,4 @@ A source should only contain the content, no header, no body, no doctype, etc.
 
 There is no restriction.
 
-# Contributing
+[Contributing](https://github.com/woobleio/wooblizer/blob/master/CONTRIBUTING.md)
