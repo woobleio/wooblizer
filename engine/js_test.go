@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/woobleio/wooblizer/wbzr/engine"
+	"github.com/woobleio/wooblizer/engine"
 )
 
 func TestIncludeHtml(t *testing.T) {

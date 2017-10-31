@@ -1,10 +1,10 @@
-package wbzr_test
+package main_test
 
 import (
 	"testing"
 
-	"github.com/woobleio/wooblizer/wbzr"
-	"github.com/woobleio/wooblizer/wbzr/engine"
+	wbzr "github.com/woobleio/wooblizer"
+	"github.com/woobleio/wooblizer/engine"
 )
 
 func TestInject(t *testing.T) {
