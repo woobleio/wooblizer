@@ -1,9 +1,9 @@
-package main_test
+package wbzr_test
 
 import (
 	"testing"
 
-	wbzr "github.com/woobleio/wooblizer"
+	"github.com/woobleio/wooblizer"
 	"github.com/woobleio/wooblizer/engine"
 )
 

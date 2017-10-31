@@ -1,6 +1,6 @@
 // Package wbzr provides tool to create a wooble in a given language and to package
 // (wrap) some woobles.
-package main
+package wbzr
 
 import (
 	"bytes"

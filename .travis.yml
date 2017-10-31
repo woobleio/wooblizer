@@ -4,9 +4,8 @@ go:
   - 1.7
 
 install:
-  - go get github.com/robertkrimen/otto 
   - go get golang.org/x/net/html
-  
+
 branches:
   only:
     - master
