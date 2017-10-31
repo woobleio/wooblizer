@@ -23,6 +23,8 @@ you did to encounter the issue.
 
 ## Submitting suggestions
 
+There is a [roadmap](https://github.com/woobleio/wooble/blob/master/doc/whitepaper.md#roadmap) that can give you an idea about what kind of new projects you could suggest and start if not already started!
+
 * Describe which behavior you would like to see and tell us how it could benefit for the project.
 
 Contact : jonathan@wooble.io
