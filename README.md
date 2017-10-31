@@ -63,8 +63,6 @@ sc1.IncludeHTMLCSS("<div id='test'>hello</div>", "#test{ background-color: red; 
 bf, err := wb.Wrap()
 ```
 
-\* The field `_init` is not mandatory.
-
 # Supported script languages and frameworks
 
 Wooble consider two types of engines, as everything if very different, I choose
