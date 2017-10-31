@@ -107,11 +107,11 @@ Or, it is possible to make a class with JavaScript ES6 and to "babelify" it to E
 ```js
 class Woobly {
 
-	constructor(params) {
+  constructor(params) {
     this.document = document.body.shadowRoot;
 
     console.log(params);
-	}
+  }
 }
 ```
 
