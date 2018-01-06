@@ -8,7 +8,6 @@ import (
 	"path"
 	"text/template"
 
-	"github.com/woobleio/wooblizer/api"
 	"github.com/woobleio/wooblizer/engine"
 )
 
@@ -25,9 +24,9 @@ type Wbzr struct {
 	DomainsSec []string
 	Scripts    []engine.Script
 
-	lang    ScriptLang
-	api     string
-	apiName string
+	lang     ScriptLang
+	apiPath  string
+	filename string
 }
 
 // New takes a script language which is used to inject and output a file.
@@ -36,8 +35,7 @@ func New(sl ScriptLang) *Wbzr {
 	var filename string
 	switch sl {
 	case JS:
-		apiLib = api.JS2015
-		apiName = "js2015"
+		filename = "js2015.js"
 	default:
 		panic("Language not supported")
 	}
@@ -46,8 +44,8 @@ func New(sl ScriptLang) *Wbzr {
 		nil,
 		make([]engine.Script, 0),
 		sl,
-		apiLib,
-		apiName,
+		apiPath,
+		filename,
 	}
 }
 
@@ -120,7 +118,7 @@ func (wb *Wbzr) Wrap() (*bytes.Buffer, error) {
 			return x + 1
 		},
 	}
-  
+
 	d, err := Asset(path.Join(wb.apiPath, wb.filename))
 	if err != nil {
 		return nil, err
