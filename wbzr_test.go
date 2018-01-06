@@ -31,8 +31,8 @@ func TestSecureAndWrap(t *testing.T) {
 	wb := wbzr.New(wbzr.JS)
 
 	var params = make([]interface{}, 2)
-	params[0] = engine.JSParam{"par1", "'value1'"}
-	params[1] = engine.JSParam{"par2", "'value2'"}
+	params[0] = engine.JSParam{Field: "par1", Value: "'value1'"}
+	params[1] = engine.JSParam{Field: "par2", Value: "'value2'"}
 
 	script1, errs := wb.Inject(`var Woobly = function () {
 	  function Woobly(params) {
@@ -51,7 +51,7 @@ func TestSecureAndWrap(t *testing.T) {
 	}();`, "obj1", params)
 
 	if len(errs) > 0 {
-		t.Error("Failed to inject the first script, error : %s", errs)
+		t.Errorf("Failed to inject the first script, error : %s", errs)
 	}
 
 	script2, _ := wb.Inject(`var Woobly = function(){function Woobly(params){_classCallCheck(this,Woobly);this.document=document.body.shadowRoot}_createClass(Woobly,[{key:"toto",value:function toto(lol){}}]);return Woobly}();`, "obj2", params)
@@ -71,7 +71,7 @@ func TestSecureAndWrap(t *testing.T) {
 
 	bf, errWrap := wb.SecureAndWrap("toto.com", "tata.com")
 	if errWrap != nil {
-		t.Error("Failed to wrap, error %s", errWrap)
+		t.Errorf("Failed to wrap, error %s", errWrap)
 	}
 
 	t.Log(bf.String())
