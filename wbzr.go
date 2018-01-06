@@ -5,6 +5,7 @@ package wbzr
 import (
 	"bytes"
 	"io/ioutil"
+	"path"
 	"text/template"
 
 	"github.com/woobleio/wooblizer/api"
@@ -31,8 +32,8 @@ type Wbzr struct {
 
 // New takes a script language which is used to inject and output a file.
 func New(sl ScriptLang) *Wbzr {
-	var apiLib string
-	var apiName string
+	apiPath := "apis"
+	var filename string
 	switch sl {
 	case JS:
 		apiLib = api.JS2015
@@ -119,8 +120,12 @@ func (wb *Wbzr) Wrap() (*bytes.Buffer, error) {
 			return x + 1
 		},
 	}
-
-	tmpl := template.Must(template.New(wb.apiName).Funcs(fns).Parse(wb.api))
+  
+	d, err := Asset(path.Join(wb.apiPath, wb.filename))
+	if err != nil {
+		return nil, err
+	}
+	tmpl := template.Must(template.New(wb.filename).Funcs(fns).Parse(string(d)))
 
 	var out bytes.Buffer
 	if err := tmpl.Execute(&out, wb); err != nil {
