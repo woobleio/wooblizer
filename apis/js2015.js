@@ -62,11 +62,13 @@ function Wb(id) {
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.0.14/webcomponents-sd-ce.js';
         document.getElementsByTagName('head')[0].appendChild(s);
         s.onload = function() {
-					for (var d of document.querySelectorAll(tar)) _cs.push(new c(d,p));
+					var __ds = document.querySelectorAll(tar);
+          for (var i = 0; i < __ds.length; i++) _cs.push(new c(__ds[i], p));
           r(_cs);
         }
       } else {
-				for (var d of document.querySelectorAll(tar)) _cs.push(new c(d,p));
+				var __ds = document.querySelectorAll(tar);
+				for (var i = 0; i < __ds.length; i++) _cs.push(new c(__ds[i], p));
         r(_cs);
       }
     });
